@@ -25,4 +25,6 @@ Please connect to internet before execute the installation!!!
 ---------------------------------------------------------------------
 
 For support contact:
+
 WhitedonSAP (whitedon) - ayrtonarantes0987654321ayrt008@gmail.com
+Telegram - https://t.me/WhitedonSAP
