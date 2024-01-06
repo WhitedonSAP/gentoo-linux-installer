@@ -1,6 +1,7 @@
 Gentoo-Linux-Installer (GLI)
 Please connect to internet before execute the installation!!!
 (RUN IT WITH ROOT)
+ONLY USE THIS SCRIPT WITH GENTOO LIVEGUI, NOT TESTED ON MINIMAL INSTALLATION CD
 
 ---------------------------------------------------------------------
 
