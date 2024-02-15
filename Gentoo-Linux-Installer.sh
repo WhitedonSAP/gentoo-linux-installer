@@ -776,6 +776,21 @@ if [ "$makeselect" = 'Y' ] || [ "$makeselect" = 'y' ]; then
   nano -w "$glchroot/etc/portage/make.conf"
 fi
 
+echo -e "\n${yellow}Using host binary package to download binary packages?${nc}"
+echo
+read -p "Yes(y) or No(n)? " binarypack
+echo
+if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
+  sed -i '/#FEATURES="${FEATURES} binpkg/c\FEATURES="${FEATURES} binpkg/c\' "$glchroot/etc/portage/make.conf"
+  echo -e "\n${yellow}Always download binary packages?${nc}"
+  echo
+  read -p "Yes(y) or No(n)? " alwaysbin
+  echo
+  if [ "$alwaysbin" = 'Y' ] || [ "$alwaysbin" = 'y' ]; then
+    sed -i '/#FEATURES="${FEATURES} getbinpkg"/c\FEATURES="${FEATURES} getbinpkg"' "$glchroot/etc/portage/make.conf"
+  fi
+fi
+
 #######
 #clear
 sleep 2
