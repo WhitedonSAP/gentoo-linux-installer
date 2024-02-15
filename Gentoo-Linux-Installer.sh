@@ -1001,11 +1001,20 @@ fi
 if [ "$boot_mode" = 'uefi' ]; then
   echo -e "\n${yellow}Are you installing the system on a USB flash drive?${nc}\n"
   read -p "Yes(y) or No(n)? " usbgrub
-  echo
+  echo -e "\n${yellow}Remove old entries of bootloader?${nc}\n"
+  read -p "Yes(y) or No(n)? " gruboldremove
   if [ "$usbgrub" = 'Y' ] || [ "$usbgrub" = 'y' ]; then
-    chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Gentoo Linux" --removable
+    if [ "$gruboldremove" = 'Y' ] || [ "$gruboldremove" = 'y' ]; then
+      chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Gentoo Linux" --removable --recheck
+    else
+      chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Gentoo Linux" --removable
+    fi
   elif [ "$usbgrub" = 'N' ] || [ "$usbgrub" = 'n' ]; then
-    chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Gentoo Linux"
+    if [ "$gruboldremove" = 'Y' ] || [ "$gruboldremove" = 'y' ]; then
+      chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Gentoo Linux" --recheck
+    else
+      chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Gentoo Linux"
+    fi
   fi
 elif [ "$boot_mode" = 'legacy' ]; then
   chroot "$glchroot" grub-install "$hddevselect"
