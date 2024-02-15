@@ -63,10 +63,6 @@ mirrorselect="$(tail -1 /etc/portage/make.conf | awk '{print $1}' | cut -c 17- |
 ### Check if GENTOO_MIRRORS have https/http mirror
 checkhttps="$(tail -1 /etc/portage/make.conf | grep -oE 'https|http' | awk 'NR==1')"
 
-### Set the default resolution for grub and tty
-resolutionxset="$(xprop -notype -len 8 -root _NET_DESKTOP_GEOMETRY | awk '{print $3}')"
-resolutionyset="$(xprop -notype -len 16 -root _NET_DESKTOP_GEOMETRY | awk '{print $4}')"
-
 ############################## Starting Installation ##################################
 
 #######
@@ -662,10 +658,10 @@ elif [[ $(lspci | grep VGA | awk 'NR==1{print $5, $6, $7}') = 'Advanced Micro De
   elif [[ $(lspci | grep VGA | awk 'NR==1{print $5, $6, $7}') = 'Advanced Micro Devices,' ]] && [[ $(lspci | grep VGA | awk 'NR==2{print $5, $6, $7}') = 'Advanced Micro Devices,' ]]; then
     echo -e "\n${cyan}AMD dedicated GPU detected!!!${nc}"
     echo -e "\n${green}Adding AMD CPU and AMD GPU driver to make.conf...${nc}"
-    sed -i 's/xVIDEO_CARDSx/radeonsi amdgpu/' "$glchroot/etc/portage/make.conf"
+    sed -i 's/xVIDEO_CARDSx/amdgpu radeon radeonsi/' "$glchroot/etc/portage/make.conf"
   else
     echo -e "\n${green}No dedicated GPU detected, adding AMD CPU and AMD integrated GPU to make.conf...${nc}"
-    sed -i 's/xVIDEO_CARDSx/radeonsi amdgpu/' "$glchroot/etc/portage/make.conf"
+    sed -i 's/xVIDEO_CARDSx/amdgpu radeon radeonsi/' "$glchroot/etc/portage/make.conf"
   fi
 else
   echo -e "\n${green}A virtual machine has been detected!!! Adding to make.conf...${nc}"
