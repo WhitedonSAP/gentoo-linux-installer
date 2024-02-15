@@ -58,7 +58,7 @@ cpuflagsselect="$(cpuid2cpuflags | cut -c 16-)"
 efivars="$(ls /sys/firmware/efi/efivars > /dev/null 2>&1; echo $?)"
 
 ### Mirror to download (Default the first mirror on GENTOO_MIRRORS flag)
-mirrorselect="$(tail -1 /etc/portage/make.conf | awk '{print $1}' | cut -c 17- | sed 's/.$//')"
+mirrorselect="$(tail -1 /etc/portage/make.conf | awk '{print $1}' | cut -c 17- | sed 's/..$//')"
 
 ### Check if GENTOO_MIRRORS have https/http mirror
 checkhttps="$(tail -1 /etc/portage/make.conf | grep -oE 'https|http' | awk 'NR==1')"
@@ -785,7 +785,7 @@ echo
 if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
   sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
   # work for only 17.1 profile for while
-  sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archformirror/binpackages/17.1/$(uname -m)"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+  sed -i '/sync-uri = /c\sync-uri = '"$mirrorselectreleases/$archformirror/binpackages/17.1/$(uname -m)"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 fi
 
 #######
