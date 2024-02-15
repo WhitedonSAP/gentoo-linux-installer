@@ -778,21 +778,14 @@ if [ "$makeselect" = 'Y' ] || [ "$makeselect" = 'y' ]; then
   nano -w "$glchroot/etc/portage/make.conf"
 fi
 
-echo -e "\n${yellow}Using host binary package to download binary packages?${nc}"
+echo -e "\n${yellow}Use the host binary package and always download bin packages?${nc} ${red}(Note: Not all packages will be binary, some will be compiled anyway)${nc}"
 echo
 read -p "Yes(y) or No(n)? " binarypack
 echo
 if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
-  sed -i '/#FEATURES='"${FEATURES}' binpkg/c\FEATURES='"${FEATURES}' binpkg/c\' "$glchroot/etc/portage/make.conf"
+  sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
   # work for only 17.1 profile for while
-  sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archformirror/binpackages/17.1/$(uname -m)"'' "$glchroot/etc/portage/make.conf"
-  echo -e "\n${yellow}Always download binary packages?${nc}"
-  echo
-  read -p "Yes(y) or No(n)? " alwaysbin
-  echo
-  if [ "$alwaysbin" = 'Y' ] || [ "$alwaysbin" = 'y' ]; then
-    sed -i '/#FEATURES='"${FEATURES} getbinpkg"'/c\FEATURES='"${FEATURES} getbinpkg"'' "$glchroot/etc/portage/make.conf"
-  fi
+  sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archformirror/binpackages/17.1/$(uname -m)"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 fi
 
 #######
