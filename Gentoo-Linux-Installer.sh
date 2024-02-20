@@ -785,7 +785,7 @@ echo
 if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
   sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
   # work for only 17.1 profile for while
-  sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archformirror/binpackages/17.1/$(uname -m)"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+  sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archformirror/binpackages/17.1/$(uname -m | sed 's/_/-/')"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 fi
 
 #######
