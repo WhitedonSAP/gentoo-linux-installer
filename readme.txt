@@ -30,3 +30,6 @@ ONLY USE THIS SCRIPT WITH GENTOO LIVEGUI (not tested on gentoo minimal installat
 For support contact:
 
 Telegram - https://t.me/WhitedonSAP
+
+A very complete installer coming soon... (not work in the moment)
+https://github.com/WhitedonSAP/overdeep-tools
