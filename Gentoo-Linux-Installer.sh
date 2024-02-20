@@ -757,9 +757,9 @@ sleep 2
 
 chroot "$glchroot" touch /etc/portage/package.use/gentoo
 if [ "$cpu_microcode" != '' ]; then
-  echo -e "##### Gentoo USE Flags per Packages #####\n\n##### KERNEL #####\n\nsys-firmware/intel-microcode initramfs\nsys-kernel/installkernel-gentoo grub" >> "$glchroot/etc/portage/package.use/gentoo"
+  echo -e "##### Gentoo USE Flags per Packages #####\n\n##### KERNEL #####\n\nsys-firmware/intel-microcode initramfs\nsys-kernel/installkernel grub" >> "$glchroot/etc/portage/package.use/gentoo"
 else
-  echo -e "##### Gentoo USE Flags per Packages #####\n\n##### KERNEL #####\n\nsys-kernel/installkernel-gentoo grub\nsys-kernel/linux-firmware initramfs" >> "$glchroot/etc/portage/package.use/gentoo"
+  echo -e "##### Gentoo USE Flags per Packages #####\n\n##### KERNEL #####\n\nsys-kernel/installkernel grub\nsys-kernel/linux-firmware initramfs" >> "$glchroot/etc/portage/package.use/gentoo"
 fi
 
 echo -e "\n${yellow}Do you want to install unstable packages?${nc}"
