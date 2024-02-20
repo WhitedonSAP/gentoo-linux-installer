@@ -342,7 +342,7 @@ elif [ "$boot_mode" = 'legacy' ]; then
   read -p "--->>> " boot_part
 fi
 sleep 2
-echo -e "\n${blue}Type the Swap partition:${nc}"
+echo -e "\n${blue}Type the Swap partition (or none):${nc}"
 echo
 read -p "--->>> " swap_part
 sleep 2
@@ -381,8 +381,10 @@ elif [ "$boot_mode" = 'legacy' ]; then
   fi
 fi
 echo
-mkswap -c "$swap_part"
-swapon "$swap_part"
+if [ "$swap_part" != 'none' ]; then
+  mkswap -c "$swap_part"
+  swapon "$swap_part"
+fi
 echo
 if [ "$filesystemselect" = 'ext4' ]; then
   mkfs.ext4 -c -L "Gentoo Linux" -F "$root_part"
