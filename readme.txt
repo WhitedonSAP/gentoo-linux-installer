@@ -3,7 +3,7 @@ Please connect to internet before execute the installation!!!
 WARNING!!! This is just a "SKETCH" !!!WARNING
 
 (RUN IT WITH ROOT)
-ONLY USE THIS SCRIPT WITH GENTOO LIVEGUI (NOT TESTED ON MINIMAL INSTALLATION CD)
+ONLY USE THIS SCRIPT WITH GENTOO LIVEGUI (not tested on gentoo minimal installation cd)
 
 ---------------------------------------------------------------------
 
