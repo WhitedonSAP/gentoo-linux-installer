@@ -429,18 +429,18 @@ elif [ "$filesystemselect" = 'btrfs' ]; then
     btrfs subvol create "$glchroot/@"
     btrfs subvol create "$glchroot/@home"
     umount -lR "$glchroot"
-    mount -t btrfs -o defaults,noatime,compress=zstd,subvol=@ "$root_part" "$glchroot"
+    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
     mkdir -p "$glchroot"/{boot/efi,home}
-    mount -t btrfs -o defaults,noatime,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
     mount "$efi_part" "$glchroot/boot/efi"
   elif [ "$boot_mode" = 'legacy' ]; then
     btrfs subvol create "$glchroot/@"
     btrfs subvol create "$glchroot/@home"
     umount -lR "$glchroot"
-    mount -t btrfs -o defaults,noatime,compress=zstd,subvol=@ "$root_part" "$glchroot"
+    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
     mkdir -p "$glchroot"/{boot,home}
-    mount -t btrfs -o defaults,noatime,compress=zstd "$boot_part" "$glchroot/boot"
-    mount -t btrfs -o defaults,noatime,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd "$boot_part" "$glchroot/boot"
+    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
   fi
 fi
 
