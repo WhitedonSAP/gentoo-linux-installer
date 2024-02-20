@@ -31,5 +31,5 @@ For support contact:
 
 Telegram - https://t.me/WhitedonSAP
 
-A very complete program to install many distros linux coming soon... (in development)
+A very complete program to install many distros linux coming soon... (in development, *DON'T* try use in the moment)
 https://github.com/WhitedonSAP/overdeep-tools
