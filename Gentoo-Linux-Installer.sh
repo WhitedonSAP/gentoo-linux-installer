@@ -1053,7 +1053,7 @@ if [ "$createuser" = 'Y' ] || [ "$createuser" = 'y' ]; then
   chroot "$glchroot" groupadd "$nameuser"
   chroot "$glchroot" useradd -g "$nameuser" -d "/home/$nameuser" -s "/bin/bash" -G "$nameuser,wheel,users,video,audio,portage" -m "$nameuser"
   chroot "$glchroot" chown -R "$nameuser":"$nameuser" "/home/$nameuser"
-  echo -e "\n$nameuser ALL=(ALL:ALL) ALL NOPASSWD: ALL" >> "$glchroot/etc/sudoers"
+  echo -e "\n$nameuser ALL=(ALL:ALL) NOPASSWD: ALL" >> "$glchroot/etc/sudoers"
   echo -e "\n${blue}Type a passwd for the user:${nc} ${green}$nameuser${nc}"
   chroot "$glchroot" passwd "$nameuser"
 elif [ "$createuser" = 'N' ] || [ "$createuser" = 'n' ]; then
