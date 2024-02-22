@@ -430,9 +430,9 @@ elif [ "$filesystemselect" = 'btrfs' ]; then
     btrfs subvol create "$glchroot/@home"
     umount -lR "$glchroot"
     mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
-    mkdir -p "$glchroot"/{boot/efi,home}
+    mkdir -p "$glchroot"/{boot,home}
     mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
-    mount "$efi_part" "$glchroot/boot/efi"
+    mount "$efi_part" "$glchroot/boot"
   elif [ "$boot_mode" = 'legacy' ]; then
     btrfs subvol create "$glchroot/@"
     btrfs subvol create "$glchroot/@home"
@@ -573,7 +573,13 @@ fi
 echo -e "\n${blue}Downloading gpg key from gentoo.org...${nc}\n"
 wget -O - https://qa-reports.gentoo.org/output/service-keys.gpg | gpg --quiet --import
 echo
-gpg --verify --output - stage3-*.tar.xz.sha256 | sha256sum -c
+gpg --verify --output - stage3-*.tar.xz.sha256 | sha256sum -c --quiet
+if [ "$?" = '0' ]; then
+  echo -e "\n${green}Success verified. File ok ...${nc}"
+else
+  echo -e "\n${red}Failed verification. Corrupted file. Exiting...${nc}"
+  exit 1
+fi
 echo -e "\n${blue}Extracting Gentoo Stage3...${nc} ${red}(Wait a while)${nc}"
 tar xpf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner
 rm -rf stage3-*.tar.xz*
