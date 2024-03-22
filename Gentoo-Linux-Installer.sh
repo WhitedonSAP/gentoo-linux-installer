@@ -268,26 +268,28 @@ echo -e "\n${magentab}Create the partitions...${nc}\n"
 sleep 2
 #######
 
-echo -e "\n${blue}To continue, have the partitions according to the following scheme:${nc}"
-sleep 2
-
 if [ "$efivars" -eq '0' ]; then
   echo -e "\n${green}Bios UEFI detected!!!${nc}"
-  boot_mode="uefi"
-  echo -e "\n\n${cyan}EFI partition (if it doesn't exist)${nc} ${red}------>${nc} ${cyan}EF00 +256M${nc}"
+  boot_mode='uefi'
 else
   echo -e "\n${green}Bios Legacy detected!!!${nc}"
-  boot_mode="legacy"
+  boot_mode='legacy'
   echo -e "\n${yellow}Would you like to use MBR or GPT partition scheme?${nc}"
   echo
   read -p "MBR(m) or GPT(g)? " partitionscheme
+fi
+
+echo -e "\n${blue}To continue, have the partitions according to the following scheme:${nc}"
+sleep 2
+
+if [ "$boot_mode" = 'uefi' ]; then
+  echo -e "\n\n${cyan}EFI partition (if it doesn't exist)${nc} ${red}------>${nc} ${cyan}EF00 +512M${nc}"
+elif [ "$boot_mode" = 'legacy' ]; then
   if [ "$partitionscheme" = 'M' ] || [ "$partitionscheme" = 'm' ]; then
-    echo -e "\n${blue}For MBR scheme:${nc}"
     echo -e "\n\n${cyan}Bios boot partition${nc} ${red}---------------------->${nc} ${cyan}EF02 +1M${nc}"
-    echo -e "\n${cyan}System Boot partition${nc} ${red}-------------------->${nc} ${cyan}8300 +256M${nc}"
+    echo -e "\n${cyan}System Boot partition${nc} ${red}-------------------->${nc} ${cyan}8300 +512${nc}"
   elif [ "$partitionscheme" = 'G' ] || [ "$partitionscheme" = 'g' ]; then
-    echo -e "\n${blue}For GPT scheme:${nc}"
-    echo -e "\n\n${cyan}System Boot partition${nc} ${red}-------------------->${nc} ${cyan}8300 +256M${nc}"
+    echo -e "\n\n${cyan}System Boot partition${nc} ${red}-------------------->${nc} ${cyan}8300 +512M${nc}"
   fi
 fi
 echo -e "\n${cyan}Swap partition${nc} ${red}--------------------------->${nc} ${cyan}8200 +(Your ram memory/2)${nc}"
@@ -300,6 +302,7 @@ echo
 read -p "Yes(y) or No(n)? " createpartselect
 if [ "$createpartselect" = 'Y' ] || [ "$createpartselect" = 'y' ]; then
   echo -e "\n${yellow}Start with an in-memory zeroed partition table?${nc} ${red}('No' for keep partitions scheme)${nc}"
+  sleep 2
   echo
   read -p "Yes(y) or No(n)? " zeropartselect
   if [ "$zeropartselect" = 'Y' ] || [ "$zeropartselect" = 'y' ]; then
