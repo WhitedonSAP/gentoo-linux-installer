@@ -612,11 +612,11 @@ sleep 2
 #######
 
 if [[ $(uname -m) = 'x86_64' ]]; then
-  archformirror='amd64'
+  archabrev='amd64'
   sed -i 's/xACCEPT_KEYWORDSx/amd64/' "$glchroot/etc/portage/make.conf"
   sed -i 's/xCHOSTx/x86_64/' "$glchroot/etc/portage/make.conf"
 elif [[ $(uname -m) = 'i486' ]] || [[ $(uname -m) = 'i686' ]]; then
-  archformirror='x86'
+  archabrev='x86'
   sed -i 's/xACCEPT_KEYWORDSx/x86/' "$glchroot/etc/portage/make.conf"
   if [[ $(uname -m) = 'i486' ]]; then
     sed -i 's/xCHOSTx/i486-pc-linux-gnu/' "$glchroot/etc/portage/make.conf"
@@ -778,22 +778,32 @@ if [ "$testing" = 'Y' ] || [ "$testing" = 'y' ]; then
   sed -i 's/#ACCEPT_KEYWORDS/ACCEPT_KEYWORDS/' "$glchroot/etc/portage/make.conf"
 fi
 
+echo -e "\n${yellow}Use the host binary package and always download bin packages?${nc} ${red}(Note: Not all packages will be binary, some will be compiled anyway)${nc}"
+echo
+read -p "Yes(y) or No(n)? " binarypack
+echo
+if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
+  profileversion="$(eselect profile list | grep '*' | awk -F[/,] '{print $4}')"
+  archextended="$(ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
+  sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
+  chroot "$glchroot" sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archabrev/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+fi
+
+# extended architecture for compilation
+if [ "$archextended" = 'x86-64-v4' ]; then
+  sed -i 's/native/x86-64-v4/' "$glchroot/etc/portage/make.conf"
+elif [ "$archextended" = 'x86-64-v3' ]; then
+  sed -i 's/native/x86-64-v3/' "$glchroot/etc/portage/make.conf"
+elif [ "$archextended" = 'x86-64-v2' ]; then
+  sed -i 's/native/x86-64-v2/' "$glchroot/etc/portage/make.conf"
+fi
+
 echo -e "\n${yellow}Would you like to manually add something to the make.conf file?${nc}"
 echo
 read -p "Yes(y) or No(n)? " makeselect
 echo
 if [ "$makeselect" = 'Y' ] || [ "$makeselect" = 'y' ]; then
   nano -w "$glchroot/etc/portage/make.conf"
-fi
-
-echo -e "\n${yellow}Use the host binary package and always download bin packages?${nc} ${red}(Note: Not all packages will be binary, some will be compiled anyway)${nc}"
-echo
-read -p "Yes(y) or No(n)? " binarypack
-echo
-if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
-  sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
-  # work for only 17.1 profile for while
-  sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archformirror/binpackages/17.1/$(ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 fi
 
 #######
