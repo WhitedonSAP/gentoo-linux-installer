@@ -43,27 +43,11 @@ cyan="$(tput setaf 6)"
 ### NoColor
 nc="$(tput sgr0)"
 
-############################### Installer Variables ###################################
-
-### Chroot path
-glchroot='/mnt/gentoo'
-
-### Disk select list
-hddevsopts="$(lsblk | grep disk | awk '{print $1}')"
-
-### CPU_FLAGS_x86 to the machine
-cpuflagsselect="$(cpuid2cpuflags | cut -c 16-)"
-
-### Check if Bios UEFI or Bios Legacy is actived
-efivars="$(ls /sys/firmware/efi/efivars > /dev/null 2>&1; echo $?)"
-
-### Mirror to download (Default the first mirror on GENTOO_MIRRORS flag)
-mirrorselect="$(tail -1 /etc/portage/make.conf | awk '{print $1}' | cut -c 17- | sed 's/..$//')"
-
-### Check if GENTOO_MIRRORS have https/http mirror
-checkhttps="$(tail -1 /etc/portage/make.conf | grep -oE 'https|http' | awk 'NR==1')"
-
 ############################## Starting Installation ##################################
+
+## Chroot path
+glchroot='/mnt/gentoo'
+##
 
 #######
 clear
@@ -72,14 +56,10 @@ echo -e "\n${magentab}Welcome to Gentoo Linux Installer!!!${nc}\n"
 sleep 2
 #######
 
-if [[ "$checkhttps" = 'https' ]]; then
-  echo -e "\n${green}Mirrors https/http detected on make.conf!!!\nProcceding...${nc}"
+if [ -f mirrors.conf ] && [[ "$(grep -oE 'http|https|ftp|rsync' < mirrors.conf)" != '' ]]; then
+  echo -e "\n${green}Mirror(s) detected(s) on make.conf file!\nProcceding...${nc}"
 else
-  echo -e "\n${red}You have not selected one https or http mirror!!!\nAdd it with mirrorselect tool and execute the installer again...${nc}"
-  if [[ $(grep -o 'GENTOO_MIRRORS' < /etc/portage/make.conf) != "" ]]; then
-    sed -i '$d' /etc/portage/make.conf && sed -i '$d' /etc/portage/make.conf
-    #tac /etc/portage/make.conf | sed '1,2d; 3s/,$//' | tac > tmp && mv tmp /etc/portage/make.conf
-  fi
+  echo -e "\n${red}You have not selected at least one mirror!!!\nAdd it with mirrorselect tool and execute the installer again...${nc}"
   exit
 fi
 
@@ -250,6 +230,9 @@ echo -e "\n${magentab}Choose the device...${nc}\n"
 sleep 2
 #######
 
+# Disk select list
+hddevsopts="$(lsblk | grep disk | awk '{print $1}')"
+
 for i in $hddevsopts
 do
   echo " >>> ${i}"
@@ -268,7 +251,7 @@ echo -e "\n${magentab}Create the partitions...${nc}\n"
 sleep 2
 #######
 
-if [ "$efivars" -eq '0' ]; then
+if [[ "$(ls /sys/firmware/efi/efivars > /dev/null 2>&1; echo $?)" -eq '0' ]]; then
   echo -e "\n${green}Bios UEFI detected!!!${nc}"
   boot_mode='uefi'
 else
@@ -454,122 +437,124 @@ echo -e "\n${magentab}Downloading and extracting Gentoo stage3...${nc}\n"
 sleep 2
 #######
 
+stage3mirror="$(grep -Po '(?<=GENTOO_MIRRORS=")[^"]*' mirrors.conf | awk '{print $1}' | sed 's,/$,,')"
+
 cd "$glchroot"
 
 ### x86_64 (64 bits) OpenRC/Glibc/GCC
 if [ "$stageselect" = '1' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-openrc/"
   wget -r -nd --no-parent -A 'stage3-amd64-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '2' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-desktop-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-desktop-openrc/"
   wget -r -nd --no-parent -A 'stage3-amd64-desktop-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '3' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-openrc/"
   wget -r -nd --no-parent -A 'stage3-amd64-nomultilib-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '4' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-x32-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-x32-openrc/"
   wget -r -nd --no-parent -A 'stage3-x32-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '5' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-hardened-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-hardened-openrc/"
   wget -r -nd --no-parent -A 'stage3-amd64-hardened-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '6' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-hardened-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-hardened-openrc/"
   wget -r -nd --no-parent -A 'stage3-amd64-hardened-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '7' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-hardened-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-hardened-openrc/"
   wget -r -nd --no-parent -A 'stage3-amd64-hardened-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '8' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-hardened-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-hardened-openrc/"
   wget -r -nd --no-parent -A 'stage3-amd64-hardened-openrc-*.tar.xz*' "$stagelink"
 fi
 
 ### x86_64 (64 bits) OpenRC/Glibc/LLVM
 if [ "$stageselect" = '9' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-llvm-openrc/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-llvm-openrc/"
   wget -r -nd --no-parent -A 'stage3-amd64-llvm-openrc*.tar.xz*' "$stagelink"
 fi
 
 ### x86_64 (64 bits) OpenRC/Musl/GCC
 if [ "$stageselect" = '10' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-musl/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-musl/"
   wget -r -nd --no-parent -A 'stage3-amd64-musl-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '11' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-musl-hardened/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-musl-hardened/"
   wget -r -nd --no-parent -A 'stage3-amd64-musl-hardened-*.tar.xz*' "$stagelink"
 fi
 
 ### x86_64 (64 bits) OpenRC/Musl/LLVM
 if [ "$stageselect" = '12' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-musl-llvm/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-musl-llvm/"
   wget -r -nd --no-parent -A 'stage3-amd64-musl-llvm-*.tar.xz*' "$stagelink"
 fi
 
 ### x86_64 (64 bits) Systemd/Glibc/GCC
 if [ "$stageselect" = '13' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-systemd/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-systemd/"
   wget -r -nd --no-parent -A 'stage3-amd64-systemd-[0-9]*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '14' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-desktop-systemd/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-desktop-systemd/"
   wget -r -nd --no-parent -A 'stage3-amd64-desktop-systemd-[0-9]*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '15' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-systemd-mergedusr/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-systemd-mergedusr/"
   wget -r -nd --no-parent -A 'stage3-amd64-systemd-mergedusr-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '16' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-desktop-systemd-mergedusr/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-desktop-systemd-mergedusr/"
   wget -r -nd --no-parent -A 'stage3-amd64-desktop-systemd-mergedusr-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '17' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-x32-systemd/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-x32-systemd/"
   wget -r -nd --no-parent -A 'stage3-x32-systemd-[0-9]*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '18' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-x32-systemd-mergedusr/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-x32-systemd-mergedusr/"
   wget -r -nd --no-parent -A 'stage3-x32-systemd-mergedusr-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '19' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd/"
   wget -r -nd --no-parent -A 'stage3-amd64-nomultilib-systemd-[0-9]*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '20' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd-mergedusr/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd-mergedusr/"
   wget -r -nd --no-parent -A 'stage3-amd64-nomultilib-systemd-mergedusr-*.tar.xz*' "$stagelink"
 fi
 
 ### x86_64 (64 bits) Systemd/Glibc/LLVM
 if [ "$stageselect" = '21' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-llvm-systemd/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-llvm-systemd/"
   wget -r -nd --no-parent -A 'stage3-amd64-llvm-systemd-[0-9]*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '22' ]; then
-  stagelink="$mirrorselect/releases/amd64/autobuilds/current-stage3-amd64-llvm-systemd-mergedusr/"
+  stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-llvm-systemd-mergedusr/"
   wget -r -nd --no-parent -A 'stage3-amd64-llvm-systemd-mergedusr-*.tar.xz*' "$stagelink"
 fi
 
 ### x86 (32 bits) OpenRC/Glibc/GCC
 if [ "$stageselect" = '23' ]; then
-  stagelink="$mirrorselect/releases/x86/autobuilds/current-stage3-i486-openrc/"
+  stagelink="$stage3mirror/releases/x86/autobuilds/current-stage3-i486-openrc/"
   wget -r -nd --no-parent -A 'stage3-i486-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '24' ]; then
-  stagelink="$mirrorselect/releases/x86/autobuilds/current-stage3-i686-openrc/"
+  stagelink="$stage3mirror/releases/x86/autobuilds/current-stage3-i686-openrc/"
   wget -r -nd --no-parent -A 'stage3-i686-openrc-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '25' ]; then
-  stagelink="$mirrorselect/releases/x86/autobuilds/current-stage3-i686-hardened-openrc/"
+  stagelink="$stage3mirror/releases/x86/autobuilds/current-stage3-i686-hardened-openrc/"
   wget -r -nd --no-parent -A 'stage3-i686-hardened-openrc-*.tar.xz*' "$stagelink"
 fi
 
 ### x86 (32 bits) OpenRC/Musl/GCC
 if [ "$stageselect" = '26' ]; then
-  stagelink="$mirrorselect/releases/x86/autobuilds/current-stage3-i686-musl/"
+  stagelink="$stage3mirror/releases/x86/autobuilds/current-stage3-i686-musl/"
   wget -r -nd --no-parent -A 'stage3-i686-musl-*.tar.xz*' "$stagelink"
 fi
 
 ### x86 (32 bits) Systemd/Glibc/GCC
 if [ "$stageselect" = '27' ]; then
-  stagelink="$mirrorselect/releases/x86/autobuilds/current-stage3-i486-systemd/"
+  stagelink="$stage3mirror/releases/x86/autobuilds/current-stage3-i486-systemd/"
   wget -r -nd --no-parent -A 'stage3-i486-systemd-[0-9]*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '28' ]; then
-  stagelink="$mirrorselect/releases/x86/autobuilds/current-stage3-i486-systemd-mergedusr/"
+  stagelink="$stage3mirror/releases/x86/autobuilds/current-stage3-i486-systemd-mergedusr/"
   wget -r -nd --no-parent -A 'stage3-i486-systemd-mergedusr-*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '29' ]; then
-  stagelink="$mirrorselect/releases/x86/autobuilds/current-stage3-i686-systemd/"
+  stagelink="$stage3mirror/releases/x86/autobuilds/current-stage3-i686-systemd/"
   wget -r -nd --no-parent -A 'stage3-i686-systemd-[0-9]*.tar.xz*' "$stagelink"
 elif [ "$stageselect" = '30' ]; then
-  stagelink="$mirrorselect/releases/x86/autobuilds/current-stage3-i686-systemd-mergedusr/"
+  stagelink="$stage3mirror/releases/x86/autobuilds/current-stage3-i686-systemd-mergedusr/"
   wget -r -nd --no-parent -A 'stage3-i686-systemd-mergedusr-*.tar.xz*' "$stagelink"
 fi
 
@@ -628,7 +613,7 @@ elif [[ $(uname -m) = 'i486' ]] || [[ $(uname -m) = 'i686' ]]; then
   fi
 fi
 
-sed -i 's/xCPU_FLAGS_X86x/'"$cpuflagsselect"'/' "$glchroot/etc/portage/make.conf"
+sed -i 's/xCPU_FLAGS_X86x/'"$(cpuid2cpuflags | cut -c 16-)"'/' "$glchroot/etc/portage/make.conf"
 sed -i 's/xMAKEOPTSx/'"$(nproc)"'/' "$glchroot/etc/portage/make.conf"
 
 if [[ $(lspci | grep VGA | awk 'NR==1{print $5, $6}') = 'Intel Corporation' ]] || [[ $(lspci | grep VGA | awk 'NR==2{print $5, $6}') = 'Intel Corporation' ]]; then
@@ -789,7 +774,7 @@ if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
   profileversion="$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"
   archextended="$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
   sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
-  sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archabrev/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+  sed -i '/sync-uri = /c\sync-uri = '"$stage3mirror/releases/$archabrev/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 fi
 
 # extended architecture for compilation

@@ -7,9 +7,9 @@ ONLY USE THIS SCRIPT WITH GENTOO LIVEGUI (not tested on gentoo minimal installat
 
 ---------------------------------------------------------------------
 
-1. Select 'ONLY' one mirror first for download the files (Only https or http mirror for while!!!):
+1. Into the script directory select at least one mirror http/https with:
 
----> root # mirrorselect -i -o >> /etc/portage/make.conf
+---> root # mirrorselect -i -o >> mirrors.conf
 
 ---------------------------------------------------------------------
 
