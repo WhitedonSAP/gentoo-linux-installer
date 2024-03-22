@@ -786,7 +786,7 @@ if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
   profileversion="$(eselect profile list | grep '*' | awk -F[/,] '{print $4}')"
   archextended="$(ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
   sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
-  chroot "$glchroot" sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archabrev/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+  chroot "$glchroot" sed -i '/sync-uri = /c\sync-uri = '"$mirrorselect/releases/$archabrev/binpackages/$profileversion/$archextended"'' /etc/portage/binrepos.conf/gentoobinhost.conf
 fi
 
 # extended architecture for compilation
