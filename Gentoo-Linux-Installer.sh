@@ -586,11 +586,11 @@ cp "$glchroot/usr/share/portage/config/repos.conf" "$glchroot/etc/portage/repos.
 cp --dereference /etc/resolv.conf "$glchroot/etc/"
 
 if [ "$stage_init" = 'openrc' ]; then
-  cp openrc/make.conf "$glchroot/etc/portage/make.conf"
+  cp -f openrc/make.conf "$glchroot/etc/portage/make.conf"
 elif [ "$stage_init" = 'systemd' ]; then
-  cp systemd/make.conf "$glchroot/etc/portage/make.conf"
+  cp -f systemd/make.conf "$glchroot/etc/portage/make.conf"
 fi
-tail -1 /etc/portage/make.conf >> "$glchroot/etc/portage/make.conf"
+cat mirrors.conf >> "$glchroot/etc/portage/make.conf"
 
 #######
 #clear
