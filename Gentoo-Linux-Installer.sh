@@ -751,6 +751,9 @@ echo -e "\n${magentab}Configuring make.conf and package.use files...${nc}\n"
 sleep 2
 #######
 
+profileversion="$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"
+archextended="$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
+
 chroot "$glchroot" touch /etc/portage/package.use/gentoo
 if [ "$cpu_microcode" != '' ]; then
   echo -e "##### Gentoo USE Flags per Packages #####\n\n##### KERNEL #####\n\nsys-firmware/intel-microcode initramfs\nsys-kernel/installkernel dracut grub" >> "$glchroot/etc/portage/package.use/gentoo"
@@ -766,22 +769,24 @@ if [ "$testing" = 'Y' ] || [ "$testing" = 'y' ]; then
   sed -i 's/#ACCEPT_KEYWORDS/ACCEPT_KEYWORDS/' "$glchroot/etc/portage/make.conf"
 fi
 
-echo -e "\n${yellow}Use the host binary package and always download bin packages?${nc} ${red}(Note: Not all packages will be binary, some will be compiled anyway)${nc}"
+echo -e "\n${yellow}Use the host binary package for always download bin packages?${nc} ${red}(Note: Not all packages will be binary, some will be compiled anyway)${nc}"
 echo
 read -p "Yes(y) or No(n)? " binarypack
 echo
 if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
-  profileversion="$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"
-  archextended="$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
   sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
-  sed -i '/sync-uri = /c\sync-uri = '"$stage3mirror/releases/$archabrev/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 fi
+
+# define mirror on gentoobinhost.conf
+sed -i '/sync-uri = /c\sync-uri = '"$stage3mirror/releases/$archabrev/binpackages/$profileversion/x86-64"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 
 # extended architecture for compilation
 if [ "$archextended" = 'x86-64-v4' ]; then
   sed -i 's/native/x86-64-v4/' "$glchroot/etc/portage/make.conf"
 elif [ "$archextended" = 'x86-64-v3' ]; then
   sed -i 's/native/x86-64-v3/' "$glchroot/etc/portage/make.conf"
+  # fix for gentoobinhost download x86-64-v3 packages
+  sed -i '/sync-uri = /c\sync-uri = '"$stage3mirror/releases/$archabrev/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 elif [ "$archextended" = 'x86-64-v2' ]; then
   sed -i 's/native/x86-64-v2/' "$glchroot/etc/portage/make.conf"
 fi
