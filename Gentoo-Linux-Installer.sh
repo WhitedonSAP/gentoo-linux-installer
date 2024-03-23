@@ -102,9 +102,9 @@ echo -e "\n${yellow}Which Architecture would you like to use?${nc}"
 echo
 read -p "Amd64(a/A) or x86(x/X): " archselect
 if [ "$archselect" = 'amd64' ] || [ "$archselect" = 'a' ]; then
-  stage_arch='x86_64 (64 bits)'
+  stage_arch='amd64'
 elif [ "$archselect" = 'x86' ] || [ "$archselect" = 'x' ]; then
-  stage_arch='x86 (32 bits)'
+  stage_arch='x86'
 fi
 
 #######
@@ -137,7 +137,7 @@ sleep 2
 echo -e "\n${magentab}Choose the Stage3...${nc}\n"
 sleep 2
 
-if [ "$stage_arch" = 'x86_64 (64 bits)' ] && [ "$stage_init" = 'openrc' ]; then
+if [ "$stage_arch" = 'amd64' ] && [ "$stage_init" = 'openrc' ]; then
   printf "\n${blue}
   ###################################################################
   #                Architecture x86_64 (64 bits)                    #
@@ -167,7 +167,7 @@ if [ "$stage_arch" = 'x86_64 (64 bits)' ] && [ "$stage_init" = 'openrc' ]; then
   #-----------------------------------------------------------------#
   # 12) Stage3 amd64 - OpenRC/Musl/LLVM                             #
   ###################################################################\n\n${nc}"
-elif [ "$stage_arch" = 'x86_64 (64 bits)' ] && [ "$stage_init" = 'systemd' ]; then
+elif [ "$stage_arch" = 'amd64' ] && [ "$stage_init" = 'systemd' ]; then
   printf "\n${blue}
   ###################################################################
   #                Architecture x86_64 (64 bits)                    #
@@ -189,7 +189,7 @@ elif [ "$stage_arch" = 'x86_64 (64 bits)' ] && [ "$stage_init" = 'systemd' ]; th
   # 21)  Stage3 amd64 - Systemd/Glibc/LLVM                          #
   # 22) Stage3 amd64 Mergedusr - Systemd/Glibc/LLVM                 #
   ###################################################################\n\n${nc}"
-elif [ "$stage_arch" = 'x86 (32 bits)' ] && [ "$stage_init" = 'openrc' ]; then
+elif [ "$stage_arch" = 'x86' ] && [ "$stage_init" = 'openrc' ]; then
   printf "\n${blue}
   ###################################################################
   #                Architecture x86 (32 bits)                       #
@@ -205,7 +205,7 @@ elif [ "$stage_arch" = 'x86 (32 bits)' ] && [ "$stage_init" = 'openrc' ]; then
   #-----------------------------------------------------------------#
   # 26) Stage3 x86-i686 - OpenRC/Musl/GCC                           #
   ###################################################################\n\n${nc}"
-elif [ "$stage_arch" = 'x86 (32 bits)' ] && [ "$stage_init" = 'systemd' ]; then
+elif [ "$stage_arch" = 'x86' ] && [ "$stage_init" = 'systemd' ]; then
   printf "\n${blue}
   ###################################################################
   #                Architecture x86 (32 bits)                       #
@@ -600,22 +600,24 @@ echo -e "\n${magentab}Configuring make.conf...${nc}\n"
 sleep 2
 #######
 
-if [[ $(uname -m) = 'x86_64' ]]; then
-  archabrev='amd64'
+makeoptsproc=''
+
+if [ "$stage_arch" = 'amd64' ]; then
   sed -i 's/xACCEPT_KEYWORDSx/amd64/' "$glchroot/etc/portage/make.conf"
-  sed -i 's/xCHOSTx/x86_64/' "$glchroot/etc/portage/make.conf"
-elif [[ $(uname -m) = 'i486' ]] || [[ $(uname -m) = 'i686' ]]; then
-  archabrev='x86'
+elif [ "$stage_arch" = 'x86' ]; then
   sed -i 's/xACCEPT_KEYWORDSx/x86/' "$glchroot/etc/portage/make.conf"
-  if [[ $(uname -m) = 'i486' ]]; then
-    sed -i 's/xCHOSTx/i486-pc-linux-gnu/' "$glchroot/etc/portage/make.conf"
-  elif [[ $(uname -m) = 'i686' ]]; then
-    sed -i 's/xCHOSTx/i686-pc-linux-gnu/' "$glchroot/etc/portage/make.conf"
-  fi
 fi
 
 sed -i 's/xCPU_FLAGS_X86x/'"$(cpuid2cpuflags | cut -c 16-)"'/' "$glchroot/etc/portage/make.conf"
-sed -i 's/xMAKEOPTSx/'"$(nproc)"'/' "$glchroot/etc/portage/make.conf"
+
+if [ "$(nproc)" -ge 2 ] && [ "$(nproc)" -le 4 ]; then
+  makeoptsproc="$(awk "BEGIN {print int($(nproc)/2)}")"
+elif [ "$(nproc)" -gt 4 ] && [ "$(nproc)" -le 8 ]; then
+  makeoptsproc="$(awk "BEGIN {print $(nproc)-2}")"
+elif [ "$(nproc)" -gt 8 ]; then
+  makeoptsproc="$(awk "BEGIN {print $(nproc)-4}")"
+fi
+sed -i 's/xMAKEOPTSx/'"$makeoptsproc"'/' "$glchroot/etc/portage/make.conf"
 
 if [[ $(lspci | grep VGA | awk 'NR==1{print $5, $6}') = 'Intel Corporation' ]] || [[ $(lspci | grep VGA | awk 'NR==2{print $5, $6}') = 'Intel Corporation' ]]; then
   cpu_microcode='intel-microcode'
@@ -748,12 +750,17 @@ fi
 #######
 #clear
 sleep 2
-echo -e "\n${magentab}Configuring make.conf and package.use files...${nc}\n"
+echo -e "\n${magentab}Configuring make.conf(again) and package.use files...${nc}\n"
 sleep 2
 #######
 
+hostchost="$(chroot "$glchroot" portageq envvar CHOST)"
 profileversion="$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"
-archextended="$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
+x86_64_extended="$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
+archextended=''
+
+# set chost for the system
+chroot "$glchroot" sed -i 's/#CHOST=""/CHOST='"$hostchost"'/' /etc/portage/make.conf
 
 chroot "$glchroot" touch /etc/portage/package.use/gentoo
 if [ "$cpu_microcode" != '' ]; then
@@ -778,19 +785,44 @@ if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
   sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
 fi
 
-# define mirror on gentoobinhost.conf
-sed -i '/sync-uri = /c\sync-uri = '"$stage3mirror/releases/$archabrev/binpackages/$profileversion/x86-64"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
-
-# extended architecture for compilation
-if [ "$archextended" = 'x86-64-v4' ]; then
-  sed -i 's/native/x86-64-v4/' "$glchroot/etc/portage/make.conf"
-elif [ "$archextended" = 'x86-64-v3' ]; then
-  sed -i 's/native/x86-64-v3/' "$glchroot/etc/portage/make.conf"
-  # fix for gentoobinhost download x86-64-v3 packages
-  sed -i '/sync-uri = /c\sync-uri = '"$stage3mirror/releases/$archabrev/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
-elif [ "$archextended" = 'x86-64-v2' ]; then
-  sed -i 's/native/x86-64-v2/' "$glchroot/etc/portage/make.conf"
+if [ "$stage_arch" = 'amd64' ]; then
+  if [[ "$($hostchost | grep -o 'llvm')" != '' ]] && [[ "$($hostchost | grep -o 'musl')" = '' ]]; then
+    archextended='x86-64_llvm'
+  elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'llvm')" = '' ]] && \
+  [[ "$($hostchost | grep -o 'hardened')" = '' ]]; then
+    archextended='x86-64_musl'
+  elif [[ "$($hostchost | grep -o 'hardened')" != '' ]] && [[ "$($hostchost | grep -o 'musl')" = '' ]]; then
+    archextended='x86-64_hardened'
+  elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'hardened')" != '' ]]; then
+    archextended='x86-64_musl_hardened'
+  elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'llvm')" != '' ]]; then
+    archextended='x86-64_musl_llvm'
+  else
+    archextended='x86-64'
+    if [ "$x86_64_extended" = 'x86-64-v4' ]; then
+      sed -i 's/native/x86-64-v4/' "$glchroot/etc/portage/make.conf"
+    elif [ "$x86_64_extended" = 'x86-64-v3' ]; then
+      sed -i 's/native/x86-64-v3/' "$glchroot/etc/portage/make.conf"
+      # fix for gentoobinhost download x86-64-v3 packages
+      archextended='x86-64-v3'
+    elif [ "$x86_64_extended" = 'x86-64-v2' ]; then
+      sed -i 's/native/x86-64-v2/' "$glchroot/etc/portage/make.conf"
+    fi
+  fi
+elif [ "$stage_arch" = 'x86' ]; then
+  if [[ "$($hostchost | grep -o 'i486')" != '' ]]; then
+    archextended='i486'
+  elif [[ "$($hostchost | grep -o 'i686')" != '' ]]; then
+    if [[ "$($hostchost | grep -o 'musl')" != '' ]]; then
+      archextended='i686_musl'
+    elif [[ "$($hostchost | grep -o 'hardened')" != '' ]]; then
+      archextended='i686_hardened'
+    fi
+  fi
 fi
+
+# define mirror on gentoobinhost.conf
+sed -i '/sync-uri = /c\sync-uri = '"$stage3mirror/releases/$stage_arch/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 
 echo -e "\n${yellow}Would you like to manually add something to the make.conf file?${nc}"
 echo
