@@ -753,13 +753,13 @@ echo -e "\n${magentab}Configuring make.conf(again) and package.use files...${nc}
 sleep 2
 #######
 
-hostchost="$(chroot "$glchroot" portageq envvar CHOST)"
+hostchost="chroot "$glchroot" portageq envvar CHOST"
 profileversion="$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"
 x86_64_extended="$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
 archextended=''
 
 # set chost for the system
-chroot "$glchroot" sed -i 's/#CHOST=""/CHOST='"$hostchost"'/' /etc/portage/make.conf
+chroot "$glchroot" sed -i 's/#CHOST=""/CHOST="'"$($hostchost)"'"/' /etc/portage/make.conf
 
 chroot "$glchroot" touch /etc/portage/package.use/gentoo
 if [ "$cpu_microcode" != '' ]; then
