@@ -573,6 +573,7 @@ tar xpf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner
 rm -rf stage3-*.tar.xz*
 cd - > /dev/null 2>&1
 echo -e "\n${green}Stage installed with Sucessfull!!!${nc}"
+exit 1
 
 #######
 #clear
