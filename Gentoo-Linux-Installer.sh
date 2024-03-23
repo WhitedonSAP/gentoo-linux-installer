@@ -788,13 +788,14 @@ if [ "$stage_arch" = 'amd64' ]; then
   if [[ "$($hostchost | grep -o 'llvm')" != '' ]] && [[ "$($hostchost | grep -o 'musl')" = '' ]]; then
     archextended='x86-64_llvm'
   elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'llvm')" = '' ]] && \
-  [[ "$($hostchost | grep -o 'hardened')" = '' ]]; then
+  [[ "$($hostchost | grep -o 'hardened')" = '' ]] && [[ "$($hostchost | grep -o 'clang')" = '' ]]; then
     archextended='x86-64_musl'
   elif [[ "$($hostchost | grep -o 'hardened')" != '' ]] && [[ "$($hostchost | grep -o 'musl')" = '' ]]; then
     archextended='x86-64_hardened'
   elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'hardened')" != '' ]]; then
     archextended='x86-64_musl_hardened'
-  elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'llvm')" != '' ]]; then
+  elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'llvm')" != '' ]] || \
+  [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'clang')" != '' ]]; then
     archextended='x86-64_musl_llvm'
   else
     archextended='x86-64'
