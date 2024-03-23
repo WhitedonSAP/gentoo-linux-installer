@@ -145,18 +145,18 @@ if [ "$stage_arch" = 'amd64' ] && [ "$stage_init" = 'openrc' ]; then
   ###################################################################
   #                     Stages for Glibc/GCC                        #
   #-----------------------------------------------------------------#
-  # 1)  Stage3 amd64 - OpenRC/Glibc/GCC                             #
-  # 2)  Stage3 amd64 Desktop - OpenRC/Glibc/GCC                     #
-  # 3)  Stage3 amd64 NoMultilib - OpenRC/Glibc/GCC                  #
-  # 4)  Stage3 amd64 x32 - OpenRC/Glibc/GCC                         #
-  # 5)  Stage3 amd64 Hardened - OpenRC/Glibc/GCC                    #
-  # 6)  Stage3 amd64 NoMultilib Hardened - OpenRC/Glibc/GCC         #
-  # 7)  Stage3 amd64 Hardened SELinux - OpenRC/Glibc/GCC            #
-  # 8)  Stage3 amd64 NoMultilib Hardened SELinux - OpenRC/Glibc/GCC #
+  # 1) Stage3 amd64 - OpenRC/Glibc/GCC                              #
+  # 2) Stage3 amd64 Desktop - OpenRC/Glibc/GCC                      #
+  # 3) Stage3 amd64 NoMultilib - OpenRC/Glibc/GCC                   #
+  # 4) Stage3 amd64 x32 - OpenRC/Glibc/GCC                          #
+  # 5) Stage3 amd64 Hardened - OpenRC/Glibc/GCC                     #
+  # 6) Stage3 amd64 NoMultilib Hardened - OpenRC/Glibc/GCC          #
+  # 7) Stage3 amd64 Hardened SELinux - OpenRC/Glibc/GCC             #
+  # 8) Stage3 amd64 NoMultilib Hardened SELinux - OpenRC/Glibc/GCC  #
   #-----------------------------------------------------------------#
   #                    Stages for Glibc/LLVM                        #
   #-----------------------------------------------------------------#
-  # 9)  Stage3 amd64 - OpenRC/Glibc/LLVM                            #
+  # 9) Stage3 amd64 - OpenRC/Glibc/LLVM                             #
   #-----------------------------------------------------------------#
   #                    Stages for Musl/GCC                          #
   #-----------------------------------------------------------------#
@@ -175,18 +175,18 @@ elif [ "$stage_arch" = 'amd64' ] && [ "$stage_init" = 'systemd' ]; then
   ###################################################################
   #                    Stages for Glibc/GCC                         #
   #-----------------------------------------------------------------#
-  # 13)  Stage3 amd64 - Systemd/Glibc/GCC                           #
-  # 14)  Stage3 amd64 Desktop - Systemd/Glibc/GCC                   #
-  # 15)  Stage3 amd64 Mergedusr - Systemd/Glibc/GCC                 #
-  # 16)  Stage3 amd64 Desktop Mergedusr - Systemd/Glibc/GCC         #
-  # 17)  Stage3 amd64 x32 - Systemd/Glibc/GCC                       #
-  # 18)  Stage3 amd64 x32 Mergedusr - Systemd/Glibc/GCC             #
-  # 19)  Stage3 amd64 NoMultilib - Systemd/Glibc/GCC                #
-  # 20)  Stage3 amd64 NoMultilib Mergedusr - Systemd/Glibc/GCC      #
+  # 13) Stage3 amd64 - Systemd/Glibc/GCC                            #
+  # 14) Stage3 amd64 Desktop - Systemd/Glibc/GCC                    #
+  # 15) Stage3 amd64 Mergedusr - Systemd/Glibc/GCC                  #
+  # 16) Stage3 amd64 Desktop Mergedusr - Systemd/Glibc/GCC          #
+  # 17) Stage3 amd64 x32 - Systemd/Glibc/GCC                        #
+  # 18) Stage3 amd64 x32 Mergedusr - Systemd/Glibc/GCC              #
+  # 19) Stage3 amd64 NoMultilib - Systemd/Glibc/GCC                 #
+  # 20) Stage3 amd64 NoMultilib Mergedusr - Systemd/Glibc/GCC       #
   #-----------------------------------------------------------------#
   #                    Stages for Glibc/LLVM                        #
   #-----------------------------------------------------------------#
-  # 21)  Stage3 amd64 - Systemd/Glibc/LLVM                          #
+  # 21) Stage3 amd64 - Systemd/Glibc/LLVM                           #
   # 22) Stage3 amd64 Mergedusr - Systemd/Glibc/LLVM                 #
   ###################################################################\n\n${nc}"
 elif [ "$stage_arch" = 'x86' ] && [ "$stage_init" = 'openrc' ]; then
