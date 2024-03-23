@@ -590,6 +590,7 @@ if [ "$stage_init" = 'openrc' ]; then
 elif [ "$stage_init" = 'systemd' ]; then
   cp -f systemd/make.conf "$glchroot/etc/portage/make.conf"
 fi
+cp -f binhost/gentoobinhost.conf "$glchroot/etc/portage/binrepos.conf/"
 cat mirrors.conf >> "$glchroot/etc/portage/make.conf"
 
 #######
@@ -785,17 +786,24 @@ if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
 fi
 
 if [ "$stage_arch" = 'amd64' ]; then
-  if [[ "$($hostchost | grep -o 'llvm')" != '' ]] && [[ "$($hostchost | grep -o 'musl')" = '' ]]; then
+  if [[ "$(eselect profile list | grep '*' | grep -o 'llvm')" != '' ]] && \
+    [[ "$(eselect profile list | grep '*' | grep -o 'musl')" = '' ]]; then
     archextended='x86-64_llvm'
-  elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'llvm')" = '' ]] && \
-  [[ "$($hostchost | grep -o 'hardened')" = '' ]] && [[ "$($hostchost | grep -o 'clang')" = '' ]]; then
+  elif [[ "$(eselect profile list | grep '*' | grep -o 'musl')" != '' ]] && \
+    [[ "$(eselect profile list | grep '*' | grep -o 'llvm')" = '' ]] && \
+    [[ "$(eselect profile list | grep '*' | grep -o 'hardened')" = '' ]] && \
+    [[ "$(eselect profile list | grep '*' | grep -o 'clang')" = '' ]]; then
     archextended='x86-64_musl'
-  elif [[ "$($hostchost | grep -o 'hardened')" != '' ]] && [[ "$($hostchost | grep -o 'musl')" = '' ]]; then
+  elif [[ "$(eselect profile list | grep '*' | grep -o 'hardened')" != '' ]] && \
+    [[ "$(eselect profile list | grep '*' | grep -o 'musl')" = '' ]]; then
     archextended='x86-64_hardened'
-  elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'hardened')" != '' ]]; then
+  elif [[ "$(eselect profile list | grep '*' | grep -o 'musl')" != '' ]] && \
+    [[ "$(eselect profile list | grep '*' | grep -o 'hardened')" != '' ]]; then
     archextended='x86-64_musl_hardened'
-  elif [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'llvm')" != '' ]] || \
-  [[ "$($hostchost | grep -o 'musl')" != '' ]] && [[ "$($hostchost | grep -o 'clang')" != '' ]]; then
+  elif [[ "$(eselect profile list | grep '*' | grep -o 'musl')" != '' ]] && \
+    [[ "$(eselect profile list | grep '*' | grep -o 'llvm')" != '' ]] || \
+    [[ "$(eselect profile list | grep '*' | grep -o 'musl')" != '' ]] && \
+    [[ "$(eselect profile list | grep '*' | grep -o 'clang')" != '' ]]; then
     archextended='x86-64_musl_llvm'
   else
     archextended='x86-64'
@@ -822,7 +830,10 @@ elif [ "$stage_arch" = 'x86' ]; then
 fi
 
 # define mirror on gentoobinhost.conf
-sed -i '/sync-uri = /c\sync-uri = '"$stage3mirror/releases/$stage_arch/binpackages/$profileversion/$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's/xMIRRORx/'"$stage3mirror"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's/xARCHx/'"$stage_arch"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's/xPROFILE_VERSIONx/'"$profileversion"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's/xARCH_EXTENDEDx/'"$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 
 echo -e "\n${yellow}Would you like to manually add something to the make.conf file?${nc}"
 echo
