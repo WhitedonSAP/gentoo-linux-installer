@@ -754,15 +754,13 @@ echo -e "\n${magentab}Configuring make.conf(again) and package.use files...${nc}
 sleep 2
 #######
 
-hostchost="chroot "$glchroot" portageq envvar CHOST"
-profileversion="$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"
-x86_64_extended="$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')"
+# variable for set arch for binaries repositories
 archextended=''
 
 # set chost for the system
-chroot "$glchroot" sed -i 's/#CHOST=""/CHOST="'"$($hostchost)"'"/' /etc/portage/make.conf
+sed -i 's/#CHOST=""/CHOST="'"$(chroot "$glchroot" portageq envvar CHOST)"'"/' "$glchroot/etc/portage/make.conf"
 
-chroot "$glchroot" touch /etc/portage/package.use/gentoo
+touch "$glchroot/etc/portage/package.use/gentoo"
 if [ "$cpu_microcode" != '' ]; then
   echo -e "##### Gentoo USE Flags per Packages #####\n\n##### KERNEL #####\n\nsys-firmware/intel-microcode initramfs\nsys-kernel/installkernel dracut grub" >> "$glchroot/etc/portage/package.use/gentoo"
 else
@@ -785,45 +783,43 @@ if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
   sed -i 's/#FEATURES=/FEATURES=/g' "$glchroot/etc/portage/make.conf"
 fi
 
+# For binaries only
 if [ "$stage_arch" = 'amd64' ]; then
-  if [[ "$(eselect profile list | grep '*' | grep -o 'llvm')" != '' ]] && \
-    [[ "$(eselect profile list | grep '*' | grep -o 'musl')" = '' ]]; then
+  if [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'llvm')" != '' ]] && \
+    [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'musl')" = '' ]]; then
     archextended='x86-64_llvm'
-  elif [[ "$(eselect profile list | grep '*' | grep -o 'musl')" != '' ]] && \
-    [[ "$(eselect profile list | grep '*' | grep -o 'llvm')" = '' ]] && \
-    [[ "$(eselect profile list | grep '*' | grep -o 'hardened')" = '' ]] && \
-    [[ "$(eselect profile list | grep '*' | grep -o 'clang')" = '' ]]; then
+  elif [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'musl')" != '' ]] && \
+    [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'llvm')" = '' ]] && \
+    [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'hardened')" = '' ]]; then
     archextended='x86-64_musl'
-  elif [[ "$(eselect profile list | grep '*' | grep -o 'hardened')" != '' ]] && \
-    [[ "$(eselect profile list | grep '*' | grep -o 'musl')" = '' ]]; then
+  elif [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'hardened')" != '' ]] && \
+    [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'musl')" = '' ]]; then
     archextended='x86-64_hardened'
-  elif [[ "$(eselect profile list | grep '*' | grep -o 'musl')" != '' ]] && \
-    [[ "$(eselect profile list | grep '*' | grep -o 'hardened')" != '' ]]; then
+  elif [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'musl')" != '' ]] && \
+    [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'hardened')" != '' ]]; then
     archextended='x86-64_musl_hardened'
-  elif [[ "$(eselect profile list | grep '*' | grep -o 'musl')" != '' ]] && \
-    [[ "$(eselect profile list | grep '*' | grep -o 'llvm')" != '' ]] || \
-    [[ "$(eselect profile list | grep '*' | grep -o 'musl')" != '' ]] && \
-    [[ "$(eselect profile list | grep '*' | grep -o 'clang')" != '' ]]; then
+  elif [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'musl')" != '' ]] && \
+    [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'llvm')" != '' ]]; then
     archextended='x86-64_musl_llvm'
   else
     archextended='x86-64'
-    if [ "$x86_64_extended" = 'x86-64-v4' ]; then
+    if [[ "$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')" = 'x86-64-v4' ]]; then
       sed -i 's/native/x86-64-v4/' "$glchroot/etc/portage/make.conf"
-    elif [ "$x86_64_extended" = 'x86-64-v3' ]; then
+    elif [[ "$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')" = 'x86-64-v3' ]]; then
       sed -i 's/native/x86-64-v3/' "$glchroot/etc/portage/make.conf"
       # fix for gentoobinhost download x86-64-v3 packages
       archextended='x86-64-v3'
-    elif [ "$x86_64_extended" = 'x86-64-v2' ]; then
+    elif [[ "$(chroot "$glchroot" ld.so --help | grep 'supported' | awk 'NR==1{print $1}')" = 'x86-64-v2' ]]; then
       sed -i 's/native/x86-64-v2/' "$glchroot/etc/portage/make.conf"
     fi
   fi
 elif [ "$stage_arch" = 'x86' ]; then
-  if [[ "$($hostchost | grep -o 'i486')" != '' ]]; then
+  if [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'i486')" != '' ]]; then
     archextended='i486'
-  elif [[ "$($hostchost | grep -o 'i686')" != '' ]]; then
-    if [[ "$($hostchost | grep -o 'musl')" != '' ]]; then
+  elif [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'i686')" != '' ]]; then
+    if [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'musl')" != '' ]]; then
       archextended='i686_musl'
-    elif [[ "$($hostchost | grep -o 'hardened')" != '' ]]; then
+    elif [[ "$(grep -Po '(?<=CHOST=")[^"]*' "$glchroot/etc/portage/make.conf" | grep -o 'hardened')" != '' ]]; then
       archextended='i686_hardened'
     fi
   fi
@@ -832,7 +828,7 @@ fi
 # define mirror on gentoobinhost.conf
 sed -i 's/xMIRRORx/'"$stage3mirror"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 sed -i 's/xARCHx/'"$stage_arch"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
-sed -i 's/xPROFILE_VERSIONx/'"$profileversion"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's/xPROFILE_VERSIONx/'"$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 sed -i 's/xARCH_EXTENDEDx/'"$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 
 echo -e "\n${yellow}Would you like to manually add something to the make.conf file?${nc}"
