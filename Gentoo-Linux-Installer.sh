@@ -262,13 +262,13 @@ else
   read -p "MBR(m) or GPT(g)? " partitionscheme
 fi
 
-echo -e "\n${yellow}Would you like to self-partition the device?${nc}"
-sleep 2
-echo
-read -p "Yes(y) or No(n)? " autopartition
-if [ "$autopartition" = 'Y' ] || [ "$autopartition" = 'y' ]; then
-else
-fi
+#echo -e "\n${yellow}Would you like to #self-partition the device?${nc}"
+#sleep 2
+#echo
+#read -p "Yes(y) or No(n)? " autopartition
+#if [ "$autopartition" = 'Y' ] || #[ "$autopartition" = 'y' ]; then
+#else
+#fi
 
 echo -e "\n${blue}To continue, have the partitions according to the following scheme:${nc}"
 sleep 2
