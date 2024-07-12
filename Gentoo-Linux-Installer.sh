@@ -83,6 +83,9 @@ while true; do
   fi
 done
 
+## Define mirror
+stage3mirror="$(grep -Po '(?<=GENTOO_MIRRORS=")[^"]*' mirrors.conf | awk '{print $1}' | sed 's,/$,,')"
+
 #######
 #clear
 sleep 2
@@ -137,89 +140,27 @@ sleep 2
 echo -e "\n${magentab}Choose the Stage3...${nc}\n"
 sleep 2
 
-if [ "$stage_arch" = 'amd64' ] && [ "$stage_init" = 'openrc' ]; then
+if [ "$stage_arch" = 'amd64' ]; then
+  wget "$stage3mirror/releases/amd64/autobuilds/latest-stage3.txt" > /dev/null 2>&1
   printf "\n${blue}
   ###################################################################
-  #                Architecture x86_64 (64 bits)                    #
-  #                           OpenRC                                #
-  ###################################################################
-  #                     Stages for Glibc/GCC                        #
-  #-----------------------------------------------------------------#
-  # 1) Stage3 amd64 - OpenRC/Glibc/GCC                              #
-  # 2) Stage3 amd64 Desktop - OpenRC/Glibc/GCC                      #
-  # 3) Stage3 amd64 NoMultilib - OpenRC/Glibc/GCC                   #
-  # 4) Stage3 amd64 x32 - OpenRC/Glibc/GCC                          #
-  # 5) Stage3 amd64 Hardened - OpenRC/Glibc/GCC                     #
-  # 6) Stage3 amd64 NoMultilib Hardened - OpenRC/Glibc/GCC          #
-  # 7) Stage3 amd64 Hardened SELinux - OpenRC/Glibc/GCC             #
-  # 8) Stage3 amd64 NoMultilib Hardened SELinux - OpenRC/Glibc/GCC  #
-  #-----------------------------------------------------------------#
-  #                    Stages for Glibc/LLVM                        #
-  #-----------------------------------------------------------------#
-  # 9) Stage3 amd64 - OpenRC/Glibc/LLVM                             #
-  #-----------------------------------------------------------------#
-  #                    Stages for Musl/GCC                          #
-  #-----------------------------------------------------------------#
-  # 10) Stage3 amd64 - OpenRC/Musl/GCC                              #
-  # 11) Stage3 amd64 Hardened - OpenRC/Musl/GCC                     #
-  #-----------------------------------------------------------------#
-  #                    Stages for Musl/LLVM                         #
-  #-----------------------------------------------------------------#
-  # 12) Stage3 amd64 - OpenRC/Musl/LLVM                             #
+  #                 Architecture x86_64 (64 bits)                   #
   ###################################################################\n\n${nc}"
-elif [ "$stage_arch" = 'amd64' ] && [ "$stage_init" = 'systemd' ]; then
+elif [ "$stage_arch" = 'x86' ]; then
+  wget "$stage3mirror/releases/x86/autobuilds/latest-stage3.txt" > /dev/null 2>&1
   printf "\n${blue}
   ###################################################################
-  #                Architecture x86_64 (64 bits)                    #
-  #                           Systemd                               #
-  ###################################################################
-  #                    Stages for Glibc/GCC                         #
-  #-----------------------------------------------------------------#
-  # 13) Stage3 amd64 - Systemd/Glibc/GCC                            #
-  # 14) Stage3 amd64 Desktop - Systemd/Glibc/GCC                    #
-  # 15) Stage3 amd64 Mergedusr - Systemd/Glibc/GCC                  #
-  # 16) Stage3 amd64 Desktop Mergedusr - Systemd/Glibc/GCC          #
-  # 17) Stage3 amd64 x32 - Systemd/Glibc/GCC                        #
-  # 18) Stage3 amd64 x32 Mergedusr - Systemd/Glibc/GCC              #
-  # 19) Stage3 amd64 NoMultilib - Systemd/Glibc/GCC                 #
-  # 20) Stage3 amd64 NoMultilib Mergedusr - Systemd/Glibc/GCC       #
-  #-----------------------------------------------------------------#
-  #                    Stages for Glibc/LLVM                        #
-  #-----------------------------------------------------------------#
-  # 21) Stage3 amd64 - Systemd/Glibc/LLVM                           #
-  # 22) Stage3 amd64 Mergedusr - Systemd/Glibc/LLVM                 #
-  ###################################################################\n\n${nc}"
-elif [ "$stage_arch" = 'x86' ] && [ "$stage_init" = 'openrc' ]; then
-  printf "\n${blue}
-  ###################################################################
-  #                Architecture x86 (32 bits)                       #
-  #                           OpenRC                                #
-  ###################################################################
-  #                     Stages for Glibc/GCC                        #
-  #-----------------------------------------------------------------#
-  # 23) Stage3 x86-i486 - OpenRC/Glibc/GCC                          #
-  # 24) Stage3 x86-i686 - OpenRC/Glibc/GCC                          #
-  # 25) Stage3 x86-i686 Hardened - OpenRC/Glibc/GCC                 #
-  #-----------------------------------------------------------------#
-  #                     Stages for Musl/GCC                         #
-  #-----------------------------------------------------------------#
-  # 26) Stage3 x86-i686 - OpenRC/Musl/GCC                           #
-  ###################################################################\n\n${nc}"
-elif [ "$stage_arch" = 'x86' ] && [ "$stage_init" = 'systemd' ]; then
-  printf "\n${blue}
-  ###################################################################
-  #                Architecture x86 (32 bits)                       #
-  #                           Systemd                               #
-  ###################################################################
-  #                   Stages for Glibc/GCC                          #
-  #-----------------------------------------------------------------#
-  # 27) Stage3 x86-i486 - Systemd/Glibc/GCC                         #
-  # 28) Stage3 x86-i486 Mergedusr - Systemd/Glibc/GCC               #
-  # 29) Stage3 x86-i686 - Systemd/Glibc/GCC                         #
-  # 30) Stage3 x86-i686 Mergedusr - Systemd/Glibc/GCC               #
+  #                 Architecture x86 (32 bits)                      #
   ###################################################################\n\n${nc}"
 fi
 
+if [ "$stage_init" = 'openrc' ]; then
+  grep -w 'stage3' < latest-stage3.txt | grep -v -e 'systemd' | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^...//' | sed 's/./&)/3'
+elif [ "$stage_init" = 'systemd' ]; then
+  grep -w 'systemd' < latest-stage3.txt | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^...//' | sed 's/./&)/3'
+fi
+
+echo
 read -p "Enter your option: " stageselect
 echo -e "\n${green}Stage selected, continuing...${nc}"
 
@@ -444,8 +385,6 @@ sleep 2
 echo -e "\n${magentab}Downloading and extracting Gentoo stage3...${nc}\n"
 sleep 2
 #######
-
-stage3mirror="$(grep -Po '(?<=GENTOO_MIRRORS=")[^"]*' mirrors.conf | awk '{print $1}' | sed 's,/$,,')"
 
 cd "$glchroot"
 
