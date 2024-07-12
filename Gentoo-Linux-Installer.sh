@@ -57,9 +57,9 @@ sleep 2
 #######
 
 if [ -f mirrors.conf ] && [[ "$(grep -oE 'http|https|ftp|rsync' < mirrors.conf)" != '' ]]; then
-  echo -e "\n${green}Mirror(s) detected(s) on make.conf file!\nProcceding...${nc}"
+  echo -e "${green}Mirror(s) detected(s) on make.conf file!\nProcceding...${nc}"
 else
-  echo -e "\n${red}You have not selected at least one mirror!!!\nAdd it with mirrorselect tool and execute the installer again...${nc}"
+  echo -e "${red}You have not selected at least one mirror!!!\nAdd it with mirrorselect tool and execute the installer again...${nc}"
   exit
 fi
 
@@ -73,12 +73,12 @@ sleep 2
 while true; do
   if ! curl -s https://www.google.com/ > /dev/null 2>&1
   then
-    echo -e "\n${red}No Internet connection detected! Check your network settings and try again!${nc}"
+    echo -e "${red}No Internet connection detected! Check your network settings and try again!${nc}"
     echo
     read -p "Connect to internet and press 'Enter' to try again"
     continue
   else
-    echo -e "\n${green}Internet connection detected!!!${nc}"
+    echo -e "${green}Internet connection detected!!!${nc}"
     break
   fi
 done
@@ -91,7 +91,9 @@ stage3mirror="$(grep -Po '(?<=GENTOO_MIRRORS=")[^"]*' mirrors.conf | awk '{print
 sleep 2
 echo -e "\n${magentab}Choose the Architecture...${nc}\n"
 sleep 2
-printf "\n${blue}
+#######
+
+printf "${blue}
   ###################################################################
   #       #                                                         #
   # amd64 #         Architecture x86_64 (64 bits)                   #
@@ -102,8 +104,7 @@ printf "\n${blue}
   #       #                                                         #
   ###################################################################\n\n${nc}"
 echo -e "\n${yellow}Which Architecture would you like to use?${nc}"
-echo
-read -p "Amd64(a/A) or x86(x/X): " archselect
+read -p "Amd64(a/A) or x86(x/X) - (Type a/A or x/X): " archselect
 if [ "$archselect" = 'amd64' ] || [ "$archselect" = 'a' ]; then
   stage_arch='amd64'
 elif [ "$archselect" = 'x86' ] || [ "$archselect" = 'x' ]; then
@@ -115,7 +116,9 @@ fi
 sleep 2
 echo -e "\n${magentab}Choose the System Init...${nc}\n"
 sleep 2
-printf "\n${blue}
+#######
+
+printf "${blue}
   ###################################################################
   #         #                                                       #
   # OpenRC  #               System Init OpenRC                      #
@@ -126,8 +129,7 @@ printf "\n${blue}
   #         #                                                       #
   ###################################################################\n\n${nc}"
 echo -e "\n${yellow}Which System Init would you like to use?${nc}"
-echo
-read -p "OpenRC(o/O) or Systemd(s/S): " initselect
+read -p "OpenRC(o/O) or Systemd(s/S) - (Type o/O or s/S): " initselect
 if [ "$initselect" = 'o' ] || [ "$initselect" = 'O' ]; then
   stage_init='openrc'
 elif [ "$initselect" = 's' ] || [ "$initselect" = 'S' ]; then
@@ -139,30 +141,38 @@ fi
 sleep 2
 echo -e "\n${magentab}Choose the Stage3...${nc}\n"
 sleep 2
+#######
 
 if [ "$stage_arch" = 'amd64' ]; then
   wget "$stage3mirror/releases/amd64/autobuilds/latest-stage3.txt" > /dev/null 2>&1
-  printf "\n${blue}
+  printf "${blue}
   ###################################################################
   #                 Architecture x86_64 (64 bits)                   #
-  ###################################################################\n\n${nc}"
+  ###################################################################${nc}"
 elif [ "$stage_arch" = 'x86' ]; then
   wget "$stage3mirror/releases/x86/autobuilds/latest-stage3.txt" > /dev/null 2>&1
-  printf "\n${blue}
+  printf "${blue}
   ###################################################################
   #                 Architecture x86 (32 bits)                      #
-  ###################################################################\n\n${nc}"
+  ###################################################################${nc}"
 fi
 
 if [ "$stage_init" = 'openrc' ]; then
+  printf "${blue}
+  #                            OpenRC                               #
+  ###################################################################\n\n${nc}"
   grep -w 'stage3' < latest-stage3.txt | grep -v -e 'systemd' | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^...//' | sed 's/./&)/3'
 elif [ "$stage_init" = 'systemd' ]; then
+  printf "${blue}
+  #                            Systemd                              #
+  ###################################################################\n\n${nc}"
   grep -w 'systemd' < latest-stage3.txt | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^...//' | sed 's/./&)/3'
 fi
 
 echo
-read -p "Enter your option: " stageselect
-echo -e "\n${green}Stage selected, continuing...${nc}"
+echo -e "\n${yellow}Which Stage would you like to use?${nc}"
+read -p "Enter your option (Type a number): " stageselect
+echo -e "${green}Stage selected, continuing...${nc}"
 
 #######
 #clear
