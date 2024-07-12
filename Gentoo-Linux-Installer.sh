@@ -398,6 +398,8 @@ sleep 2
 
 cd "$glchroot"
 
+grep -o "$stageselect)" < latest-stage3.txt
+
 ### x86_64 (64 bits) OpenRC/Glibc/GCC
 if [ "$stageselect" = '1' ]; then
   stagelink="$stage3mirror/releases/amd64/autobuilds/current-stage3-amd64-openrc/"
