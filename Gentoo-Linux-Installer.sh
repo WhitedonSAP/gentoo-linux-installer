@@ -161,12 +161,12 @@ if [ "$stage_init" = 'openrc' ]; then
   printf "${blue}
   #                            OpenRC                               #
   ###################################################################\n\n${nc}"
-  grep -w 'stage3' < latest-stage3.txt | grep -v -e 'systemd' | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^...//' | sed 's/./&)/3'
+  grep -w 'stage3' < latest-stage3.txt | grep -v -e 'systemd' | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > latest-stage3.tmp && mv latest-stage3.tmp latest-stage3.txt && cat latest-stage3.txt
 elif [ "$stage_init" = 'systemd' ]; then
   printf "${blue}
   #                            Systemd                              #
   ###################################################################\n\n${nc}"
-  grep -w 'systemd' < latest-stage3.txt | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^...//' | sed 's/./&)/3'
+  grep -w 'systemd' < latest-stage3.txt | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > latest-stage3.tmp && mv latest-stage3.tmp latest-stage3.txt && cat latest-stage3.txt
 fi
 
 echo
@@ -398,7 +398,7 @@ sleep 2
 
 cd "$glchroot"
 
-grep -o "$stageselect)" < latest-stage3.txt
+grep -o "$stageselect)" < latest-stage3.txt | awk '{print $2}'
 
 ### x86_64 (64 bits) OpenRC/Glibc/GCC
 if [ "$stageselect" = '1' ]; then
