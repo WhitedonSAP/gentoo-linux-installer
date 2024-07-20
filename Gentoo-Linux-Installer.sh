@@ -398,10 +398,10 @@ sleep 2
 
 cd "$glchroot"
 
-stagedirname="$(grep -w "$stageselect)" < latest-stage3.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev)"
-stagelink="$stage3mirror/releases/$stage_arch/autobuilds/current-$stagedirname/"
+stage3dirname="$(grep -w "$stageselect)" < latest-stage3.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev)"
+stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$stage3dirname/"
 
-wget -r -nd --no-parent -A "$stagedirname-*.tar.xz*" "$stagelink"
+wget -r -nd --no-parent -A "$stage3dirname-*.tar.xz*" "$stage3link"
 
 echo -e "\n${blue}Downloading gpg key from gentoo.org...${nc}\n"
 wget -O - https://qa-reports.gentoo.org/output/service-keys.gpg | gpg --quiet --import
