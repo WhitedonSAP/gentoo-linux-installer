@@ -161,12 +161,12 @@ if [ "$stage_init" = 'openrc' ]; then
   printf "${blue}
   #                            OpenRC                               #
   ###################################################################\n\n${nc}"
-  grep -w 'stage3' < latest-stage3.txt | grep -v -e 'systemd' | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > latest-stage3.tmp && mv latest-stage3.tmp latest-stage3.txt && cat latest-stage3.txt
+  grep -w 'stage3' < latest-stage3.txt | grep -v -e 'systemd' | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > latest-stage3-list.txt && rm latest-stage3.txt && cat latest-stage3-list.txt
 elif [ "$stage_init" = 'systemd' ]; then
   printf "${blue}
   #                            Systemd                              #
   ###################################################################\n\n${nc}"
-  grep -w 'systemd' < latest-stage3.txt | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > latest-stage3.tmp && mv latest-stage3.tmp latest-stage3.txt && cat latest-stage3.txt
+  grep -w 'systemd' < latest-stage3.txt | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > latest-stage3-list.txt && rm latest-stage3.txt && cat latest-stage3-list.txt
 fi
 
 echo
@@ -398,9 +398,11 @@ sleep 2
 
 cd "$glchroot"
 
-stage3dirname="$(grep -w "$stageselect)" < latest-stage3.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev)"
-stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$stage3dirname/"
-
+grep -w "$stageselect)" < latest-stage3-list.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev > stage3-name.txt
+stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$(cat stage3-name.txt)/"
+cat stage3-name.txt
+echo $stage3link
+exit 1
 wget -r -nd --no-parent -A "$stage3dirname-*.tar.xz*" "$stage3link"
 
 echo -e "\n${blue}Downloading gpg key from gentoo.org...${nc}\n"
