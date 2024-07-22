@@ -161,13 +161,15 @@ if [ "$stage_init" = 'openrc' ]; then
   printf "${blue}
   #                            OpenRC                               #
   ###################################################################\n\n${nc}"
-  grep -w 'stage3' < latest-stage3.txt | grep -v -e 'systemd' | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > latest-stage3-list.txt && rm latest-stage3.txt && cat latest-stage3-list.txt
+  grep -w 'stage3' < latest-stage3.txt | grep -v -e 'systemd' | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > stage3-list.txt && rm latest-stage3.txt
 elif [ "$stage_init" = 'systemd' ]; then
   printf "${blue}
   #                            Systemd                              #
   ###################################################################\n\n${nc}"
-  grep -w 'systemd' < latest-stage3.txt | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > latest-stage3-list.txt && rm latest-stage3.txt && cat latest-stage3-list.txt
+  grep -w 'systemd' < latest-stage3.txt | cut -d "/" -f 2 | awk '{print $1}' | nl | sed 's/^..//' | sed 's/./&)/4' > stage3-list.txt && rm latest-stage3.txt
 fi
+
+cat stage3-list.txt
 
 echo
 echo -e "\n${yellow}Which Stage would you like to use?${nc}"
@@ -396,14 +398,15 @@ echo -e "\n${magentab}Downloading and extracting Gentoo stage3...${nc}\n"
 sleep 2
 #######
 
-cd "$glchroot"
+stage3dirname="$(grep -w "$stageselect)" < stage3-list.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev)"
 
-grep -w "$stageselect)" < latest-stage3-list.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev > stage3-name.txt
-stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$(cat stage3-name.txt)/"
-cat stage3-name.txt
-echo $stage3link
-exit 1
-wget -r -nd --no-parent -A "$stage3dirname-*.tar.xz*" "$stage3link"
+stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$stage3dirname/"
+
+wget -r -nd --no-parent -A "$stage3dirname-*.tar.xz*" "$stage3link" -P "$glchroot"
+
+rm stage3-list.txt
+# Change for the mounted root partition
+cd "$glchroot"
 
 echo -e "\n${blue}Downloading gpg key from gentoo.org...${nc}\n"
 wget -O - https://qa-reports.gentoo.org/output/service-keys.gpg | gpg --quiet --import
