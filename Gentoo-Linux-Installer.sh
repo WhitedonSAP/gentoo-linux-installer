@@ -701,6 +701,10 @@ echo -e "\n${magentab}Emerging @world...${nc}\n"
 sleep 2
 #######
 
+if [ "$binarypack" = 'Y' ] || [ "$binarypack" = 'y' ]; then
+  chroot "$glchroot" getuto
+fi
+
 chroot "$glchroot" emerge -aquDN --with-bdeps=y @world
 
 #######
