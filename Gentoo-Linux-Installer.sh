@@ -398,14 +398,14 @@ echo -e "\n${magentab}Downloading and extracting Gentoo stage3...${nc}\n"
 sleep 2
 #######
 
-stage3dirname="$(grep -w "$stageselect)" < stage3-list.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev)"
+stage3name="$(grep -w "$stageselect)" < stage3-list.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev)"
 
-stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$stage3dirname"
+stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$stage3name/"
 
 # Download stage3 file
-wget -r -nd -np -A "*.tar.xz" "$stage3link" -P "$glchroot"
+wget -r -nv -nd -np --show-progress -A "*.tar.xz" "$stage3link" -P "$glchroot"
 # Download stage3 sha256 file
-wget -r -nd -np -A "*.tar.xz.sha256" "$stage3link" -P "$glchroot"
+wget -r -nv -nd -np --show-progress -A "*.tar.xz.sha256" "$stage3link" -P "$glchroot"
 
 # Remove stages list
 rm stage3-list.txt
@@ -425,7 +425,6 @@ fi
 echo -e "\n${blue}Extracting Gentoo Stage3...${nc} ${red}(Wait a while)${nc}"
 tar xpf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner
 rm -rf stage3-*.tar.xz*
-cd - > /dev/null 2>&1
 echo -e "\n${green}Stage installed with Sucessfull!!!${nc}"
 
 #######
@@ -434,6 +433,8 @@ sleep 2
 echo -e "\n${magentab}Copying files...${nc}\n"
 sleep 2
 #######
+
+cd - > /dev/null 2>&1
 
 mkdir -p "$glchroot/etc/portage/repos.conf"
 cp "$glchroot/usr/share/portage/config/repos.conf" "$glchroot/etc/portage/repos.conf/gentoo.conf"
