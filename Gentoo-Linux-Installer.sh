@@ -681,10 +681,10 @@ elif [ "$stage_arch" = 'x86' ]; then
 fi
 
 # define mirror on gentoobinhost.conf
-sed -i 's/xMIRRORx/'"$stage3mirror"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
-sed -i 's/xARCHx/'"$stage_arch"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
-sed -i 's/xPROFILE_VERSIONx/'"$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
-sed -i 's/xARCH_EXTENDEDx/'"$archextended"'' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's,xMIRRORx,'"$stage3mirror"',' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's,xARCHx,'"$stage_arch"',' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's,xPROFILE_VERSIONx,'"$(chroot "$glchroot" eselect profile list | grep '*' | awk -F[/,] '{print $4}')"',' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
+sed -i 's,xARCH_EXTENDEDx,'"$archextended"',' "$glchroot/etc/portage/binrepos.conf/gentoobinhost.conf"
 
 echo -e "\n${yellow}Would you like to manually add something to the make.conf file?${nc}"
 echo
