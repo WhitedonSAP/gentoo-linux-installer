@@ -400,10 +400,14 @@ sleep 2
 
 stage3dirname="$(grep -w "$stageselect)" < stage3-list.txt | awk '{print $2}' | rev | cut -d '-' -f2- | rev)"
 
-stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$stage3dirname/"
+stage3link="$stage3mirror/releases/$stage_arch/autobuilds/current-$stage3dirname"
 
-wget -r -nd --no-parent -A "$stage3dirname-*.tar.xz*" "$stage3link" -P "$glchroot"
+# Download stage3 file
+wget -r -nd -np -A "*.tar.xz" "$stage3link" -P "$glchroot"
+# Download stage3 sha256 file
+wget -r -nd -np -A "*.tar.xz.sha256" "$stage3link" -P "$glchroot"
 
+# Remove stages list
 rm stage3-list.txt
 # Change for the mounted root partition
 cd "$glchroot"
