@@ -781,27 +781,20 @@ chroot "$glchroot" env-update && source /etc/profile
 #######
 #clear
 sleep 2
-echo -e "\n${magentab}Installing firmware...${nc}\n"
+echo -e "\n${magentab}Installing kernel and firmware...${nc}\n"
 sleep 2
 #######
 
-chroot "$glchroot" emerge -q sys-kernel/linux-firmware
-
-#######
-#clear
-sleep 2
-echo -e "\n${magentab}Installing kernel-bin...${nc}\n"
-sleep 2
-#######
+genfirm='sys-kernel/linux-firmware'
 
 if [ "$filesystemselect" = 'xfs' ]; then
-  chroot "$glchroot" emerge -q sys-fs/xfsprogs sys-kernel/gentoo-kernel-bin
+  chroot "$glchroot" emerge -q sys-fs/xfsprogs sys-kernel/gentoo-kernel-bin $genfirm
 elif [ "$filesystemselect" = 'jfs' ]; then
-  chroot "$glchroot" emerge -q sys-fs/jfsutils sys-kernel/gentoo-kernel-bin
+  chroot "$glchroot" emerge -q sys-fs/jfsutils sys-kernel/gentoo-kernel-bin $genfirm
 elif [ "$filesystemselect" = 'f2fs' ]; then
-  chroot "$glchroot" emerge -q sys-fs/f2fs-tools sys-kernel/gentoo-kernel-bin
+  chroot "$glchroot" emerge -q sys-fs/f2fs-tools sys-kernel/gentoo-kernel-bin $genfirm
 elif [ "$filesystemselect" = 'btrfs' ]; then
-  chroot "$glchroot" emerge -q sys-fs/btrfs-progs sys-kernel/gentoo-kernel-bin
+  chroot "$glchroot" emerge -q sys-fs/btrfs-progs sys-kernel/gentoo-kernel-bin $genfirm
 fi
 
 #######
