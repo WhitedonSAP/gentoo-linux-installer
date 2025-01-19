@@ -852,7 +852,7 @@ sleep 2
 #######
 
 if [ "$stage_init" = 'openrc' ]; then
-  chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp app-admin/sysklogd sys-power/acpid sys-process/cronie sys-apps/mlocate net-misc/networkmanager sys-fs/udev sys-boot/grub net-misc/chrony
+  chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp app-admin/sysklogd sys-power/acpid sys-process/cronie sys-apps/mlocate net-misc/networkmanager sys-boot/grub net-misc/chrony
 elif [ "$stage_init" = 'systemd' ]; then
   chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp sys-power/acpid net-misc/networkmanager sys-apps/mlocate sys-boot/grub
 fi
