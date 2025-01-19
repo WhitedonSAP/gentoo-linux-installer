@@ -785,7 +785,13 @@ echo -e "\n${magentab}Installing kernel and firmware...${nc}\n"
 sleep 2
 #######
 
-genfirm='sys-kernel/linux-firmware'
+genfirm=''
+
+if [ "$cpu_microcode" = 'intel-microcode' ]; then
+  genfirm='sys-firmware/intel-microcode sys-kernel/linux-firmware'
+else
+  genfirm='sys-kernel/linux-firmware'
+fi
 
 if [ "$filesystemselect" = 'xfs' ]; then
   chroot "$glchroot" emerge -q sys-fs/xfsprogs sys-kernel/gentoo-kernel-bin $genfirm
