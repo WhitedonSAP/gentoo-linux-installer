@@ -193,9 +193,9 @@ done
 echo
 read -p "Choose the device: " hddevselect
 if echo "$hddevsopts" | grep "\<$hddevselect\>" > /dev/null 2>&1; then
-  hddevselect="/dev/$hddevselect"
+  hddevselectdev="/dev/$hddevselect"
 fi
-echo -e "\n${green}Device ${hddevselect} selected!!!${nc}"
+echo -e "\n${green}Device ${hddevselectdev} selected!!!${nc}"
 
 #######
 #clear
@@ -251,20 +251,20 @@ if [ "$createpartselect" = 'Y' ] || [ "$createpartselect" = 'y' ]; then
   read -p "Yes(y) or No(n)? " zeropartselect
   if [ "$zeropartselect" = 'Y' ] || [ "$zeropartselect" = 'y' ]; then
     sleep 2
-    cfdisk -z "$hddevselect"
+    cfdisk -z "$hddevselectdev"
     sync
   elif [ "$zeropartselect" = 'N' ] || [ "$zeropartselect" = 'n' ]; then
     sleep 2
-    cfdisk "$hddevselect"
+    cfdisk "$hddevselectdev"
     sync
   fi
 fi
 sleep 2
 
-if [ "$boot_mode" = 'uefi' ] && ! [[ $(fdisk -l "$hddevselect" -o type | grep -i 'EFI') ]]; then
+if [ "$boot_mode" = 'uefi' ] && ! [[ $(fdisk -l "$hddevselectdev" -o type | grep -i 'EFI') ]]; then
   echo -e "\n${red}You are booting in UEFI mode but not EFI partition was created, make sure you select the EFI System type for your EFI partition!!!${nc}"
   sleep 2
-  cfdisk "$hddevselect"
+  cfdisk "$hddevselectdev"
 fi
 
 #######
@@ -276,7 +276,7 @@ sleep 2
 
 echo -e "\n${blue}Now configure the partitions:${nc}"
 echo
-fdisk -l "$hddevselect"
+fdisk -l "$hddevselectdev"
 echo
 sleep 2
 if [ "$boot_mode" = 'uefi' ]; then
@@ -352,6 +352,10 @@ echo -e "\n${magentab}Configuring mount points and mounting partitions...${nc}\n
 sleep 2
 #######
 
+if [[ $(lsblk -d -o name,rota | grep "$hddevselect" > /dev/null 2>&1) = '0' ]]; then
+  install_disk='ssd'
+fi
+
 if [[ $(ls "$glchroot" > /dev/null 2>&1) = "$glchroot" ]]; then
   echo -e "\n${green}Directory $glchroot detected!!!${nc}"
   sleep 2
@@ -372,22 +376,42 @@ if [ "$filesystemselect" = 'ext4' ] || [ "$filesystemselect" = 'xfs' ] || \
   fi
 elif [ "$filesystemselect" = 'btrfs' ]; then
   mount "$root_part" "$glchroot"
-  if [ "$boot_mode" = 'uefi' ]; then
-    btrfs subvol create "$glchroot/@"
-    btrfs subvol create "$glchroot/@home"
-    umount -lR "$glchroot"
-    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
-    mkdir -p "$glchroot"/{boot,home}
-    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
-    mount "$efi_part" "$glchroot/boot"
-  elif [ "$boot_mode" = 'legacy' ]; then
-    btrfs subvol create "$glchroot/@"
-    btrfs subvol create "$glchroot/@home"
-    umount -lR "$glchroot"
-    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
-    mkdir -p "$glchroot"/{boot,home}
-    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd "$boot_part" "$glchroot/boot"
-    mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+  if [ "$install_disk" = 'ssd' ]; then
+    if [ "$boot_mode" = 'uefi' ]; then
+      btrfs subvol create "$glchroot/@"
+      btrfs subvol create "$glchroot/@home"
+      umount -lR "$glchroot"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@ "$root_part" "$glchroot"
+      mkdir -p "$glchroot"/{efi,home}
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+      mount "$efi_part" "$glchroot/efi"
+    elif [ "$boot_mode" = 'legacy' ]; then
+      btrfs subvol create "$glchroot/@"
+      btrfs subvol create "$glchroot/@home"
+      umount -lR "$glchroot"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@ "$root_part" "$glchroot"
+      mkdir -p "$glchroot"/{boot,home}
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd "$boot_part" "$glchroot/boot"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+    fi
+  else
+    if [ "$boot_mode" = 'uefi' ]; then
+      btrfs subvol create "$glchroot/@"
+      btrfs subvol create "$glchroot/@home"
+      umount -lR "$glchroot"
+      mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
+      mkdir -p "$glchroot"/{efi,home}
+      mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+      mount "$efi_part" "$glchroot/efi"
+    elif [ "$boot_mode" = 'legacy' ]; then
+      btrfs subvol create "$glchroot/@"
+      btrfs subvol create "$glchroot/@home"
+      umount -lR "$glchroot"
+      mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
+      mkdir -p "$glchroot"/{boot,home}
+      mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd "$boot_part" "$glchroot/boot"
+      mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+    fi
   fi
 fi
 
@@ -851,10 +875,18 @@ echo -e "\n${magentab}Installing basic apps...${nc}\n"
 sleep 2
 #######
 
-if [ "$stage_init" = 'openrc' ]; then
-  chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp app-admin/sysklogd sys-power/acpid sys-process/cronie sys-apps/mlocate net-misc/networkmanager sys-boot/grub net-misc/chrony
-elif [ "$stage_init" = 'systemd' ]; then
-  chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp sys-power/acpid net-misc/networkmanager sys-apps/mlocate sys-boot/grub
+if [ "$install_disk" = 'ssd' ] && [[ $(lsblk -d -o name,rota | grep 'nvme') != '' ]]; then
+  if [ "$stage_init" = 'openrc' ]; then
+    chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp app-admin/sysklogd sys-power/acpid sys-process/cronie sys-apps/mlocate net-misc/networkmanager sys-boot/grub net-misc/chrony sys-block/io-scheduler-udev-rules
+  elif [ "$stage_init" = 'systemd' ]; then
+    chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp sys-power/acpid net-misc/networkmanager sys-apps/mlocate sys-boot/grub sys-block/io-scheduler-udev-rules
+  fi
+else
+  if [ "$stage_init" = 'openrc' ]; then
+    chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp app-admin/sysklogd sys-power/acpid sys-process/cronie sys-apps/mlocate net-misc/networkmanager sys-boot/grub net-misc/chrony
+  elif [ "$stage_init" = 'systemd' ]; then
+    chroot "$glchroot" emerge -q --noreplace app-admin/sudo app-portage/genlop app-portage/gentoolkit app-shells/bash-completion app-shells/gentoo-bashcomp sys-power/acpid net-misc/networkmanager sys-apps/mlocate sys-boot/grub
+  fi
 fi
 
 echo -e "\n${yellow}Would you like install some program?${nc}\n"
@@ -938,7 +970,7 @@ if [ "$boot_mode" = 'uefi' ]; then
     fi
   fi
 elif [ "$boot_mode" = 'legacy' ]; then
-  chroot "$glchroot" grub-install "$hddevselect"
+  chroot "$glchroot" grub-install "$hddevselectdev"
 fi
 
 cp grub/gentoo-wallpaper.png "$glchroot/boot/grub/"
