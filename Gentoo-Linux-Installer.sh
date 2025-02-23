@@ -215,14 +215,6 @@ else
   read -p "MBR(m) or GPT(g)? " partitionscheme
 fi
 
-#echo -e "\n${yellow}Would you like to #self-partition the device?${nc}"
-#sleep 2
-#echo
-#read -p "Yes(y) or No(n)? " autopartition
-#if [ "$autopartition" = 'Y' ] || #[ "$autopartition" = 'y' ]; then
-#else
-#fi
-
 echo -e "\n${blue}To continue, have the partitions according to the following scheme:${nc}"
 sleep 2
 
@@ -329,16 +321,35 @@ elif [ "$boot_mode" = 'legacy' ]; then
 fi
 echo
 if [ "$swap_part" != 'none' ]; then
-  mkswap -c "$swap_part"
+  echo -e "\n${blue}Do you want check for badblocks when formatting Swap partition?${nc} ${red}(This take time on HDD!!!)${nc}"
+  echo
+  read -p "Yes(y) or No(n)? " swapcheck
+  echo
+  if [ "$swapcheck" = 'Y' ] || [ "$swapcheck" = 'y' ]; then
+    mkswap -c "$swap_part"
+  else
+    mkswap "$swap_part"
+  fi
   swapon "$swap_part"
 fi
 echo
+echo -e "\n${blue}Do you want check for badblocks when formatting Root partition?${nc} ${red}(This take time on HDD!!!)${nc}"
+echo
+read -p "Yes(y) or No(n)? " rootcheck
 if [ "$filesystemselect" = 'ext4' ]; then
-  mkfs.ext4 -c -L "Gentoo Linux" -F "$root_part"
+  if [ "$rootcheck" = 'Y' ] || [ "$rootcheck" = 'y' ]; then
+    mkfs.ext4 -c -L "Gentoo Linux" -F "$root_part"
+  else
+    mkfs.ext4 -L "Gentoo Linux" -F "$root_part"
+  fi
 elif [ "$filesystemselect" = 'xfs' ]; then
   mkfs.xfs -L "Gentoo Linux" -f "$root_part"
 elif [ "$filesystemselect" = 'jfs' ]; then
-  mkfs.jfs -q -c -L "Gentoo Linux" "$root_part"
+  if [ "$rootcheck" = 'Y' ] || [ "$rootcheck" = 'y' ]; then
+    mkfs.jfs -q -c -L "Gentoo Linux" "$root_part"
+  else
+    mkfs.jfs -q -L "Gentoo Linux" "$root_part"
+  fi
 elif [ "$filesystemselect" = 'f2fs' ]; then
   mkfs.f2fs -l "Gentoo Linux" -f "$root_part"
 elif [ "$filesystemselect" = 'btrfs' ]; then
@@ -380,37 +391,53 @@ elif [ "$filesystemselect" = 'btrfs' ]; then
     if [ "$boot_mode" = 'uefi' ]; then
       btrfs subvol create "$glchroot/@"
       btrfs subvol create "$glchroot/@home"
+      btrfs subvol create "$glchroot/@snapshots"
+      btrfs subvol create "$glchroot/@var_log"
       umount -lR "$glchroot"
       mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@ "$root_part" "$glchroot"
-      mkdir -p "$glchroot"/{efi,home}
+      mkdir -p "$glchroot"/{efi,home,.snapshots,var/log}
       mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@snapshots "$root_part" "$glchroot/.snapshots"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@var_log "$root_part" "$glchroot/var/log"
       mount "$efi_part" "$glchroot/efi"
     elif [ "$boot_mode" = 'legacy' ]; then
       btrfs subvol create "$glchroot/@"
       btrfs subvol create "$glchroot/@home"
+      btrfs subvol create "$glchroot/@snapshots"
+      btrfs subvol create "$glchroot/@var_log"
       umount -lR "$glchroot"
       mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@ "$root_part" "$glchroot"
-      mkdir -p "$glchroot"/{boot,home}
+      mkdir -p "$glchroot"/{boot,home,.snapshots,var/log}
       mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd "$boot_part" "$glchroot/boot"
       mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@snapshots "$root_part" "$glchroot/.snapshots"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@var_log "$root_part" "$glchroot/var/log"
     fi
   else
     if [ "$boot_mode" = 'uefi' ]; then
       btrfs subvol create "$glchroot/@"
       btrfs subvol create "$glchroot/@home"
+      btrfs subvol create "$glchroot/@snapshots"
+      btrfs subvol create "$glchroot/@var_log"
       umount -lR "$glchroot"
       mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
-      mkdir -p "$glchroot"/{efi,home}
+      mkdir -p "$glchroot"/{efi,home,.snapshots,var/log}
       mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@snapshots "$root_part" "$glchroot/.snapshots"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@var_log "$root_part" "$glchroot/var/log"
       mount "$efi_part" "$glchroot/efi"
     elif [ "$boot_mode" = 'legacy' ]; then
       btrfs subvol create "$glchroot/@"
       btrfs subvol create "$glchroot/@home"
+      btrfs subvol create "$glchroot/@snapshots"
+      btrfs subvol create "$glchroot/@var_log"
       umount -lR "$glchroot"
       mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@ "$root_part" "$glchroot"
-      mkdir -p "$glchroot"/{boot,home}
+      mkdir -p "$glchroot"/{boot,home,.snapshots,var/log}
       mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd "$boot_part" "$glchroot/boot"
       mount -t btrfs -o defaults,noatime,autodefrag,compress=zstd,subvol=@home "$root_part" "$glchroot/home"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@snapshots "$root_part" "$glchroot/.snapshots"
+      mount -t btrfs -o defaults,noatime,autodefrag,ssd,compress=zstd,subvol=@var_log "$root_part" "$glchroot/var/log"
     fi
   fi
 fi
@@ -812,7 +839,11 @@ sleep 2
 genfirm=''
 
 if [ "$cpu_microcode" = 'intel-microcode' ]; then
-  genfirm='sys-firmware/intel-microcode sys-kernel/linux-firmware'
+  if [[ $(lscpu | grep -w 'Intel' | awk '{print $4}' | cut -c -2) -ge 10 ]]; then
+    genfirm='sys-firmware/intel-microcode sys-kernel/linux-firmware sys-firmware/sof-firmware'
+  else
+    genfirm='sys-firmware/intel-microcode sys-kernel/linux-firmware'
+  fi
 else
   genfirm='sys-kernel/linux-firmware'
 fi
@@ -834,7 +865,7 @@ echo -e "\n${magentab}Configuring the password...${nc}\n"
 sleep 2
 #######
 
-sed -i 's/everyone/none/' "$glchroot/etc/security/passwdqc.conf"
+#sed -i 's/everyone/none/' "$glchroot/etc/security/passwdqc.conf"
 chroot "$glchroot" passwd
 
 #######
@@ -912,7 +943,7 @@ if [ "$stage_init" = 'openrc' ]; then
   chroot "$glchroot" rc-update add udev sysinit
   chroot "$glchroot" rc-update add chronyd default
 elif [ "$stage_init" = 'systemd' ]; then
-  chroot "$glchroot" systemctl disable systemd-resolved.service
+  #chroot "$glchroot" systemctl disable systemd-resolved.service
   chroot "$glchroot" systemctl enable NetworkManager.service
   chroot "$glchroot" systemctl enable acpid.service
 fi
@@ -954,20 +985,10 @@ fi
 if [ "$boot_mode" = 'uefi' ]; then
   echo -e "\n${yellow}Are you installing the system on a USB flash drive?${nc}\n"
   read -p "Yes(y) or No(n)? " usbgrub
-  echo -e "\n${yellow}Remove old entries of bootloader?${nc}\n"
-  read -p "Yes(y) or No(n)? " gruboldremove
   if [ "$usbgrub" = 'Y' ] || [ "$usbgrub" = 'y' ]; then
-    if [ "$gruboldremove" = 'Y' ] || [ "$gruboldremove" = 'y' ]; then
-      chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="Gentoo Linux" --removable --recheck
-    else
-      chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="Gentoo Linux" --removable
-    fi
+    chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id="Gentoo Linux" --removable --recheck
   elif [ "$usbgrub" = 'N' ] || [ "$usbgrub" = 'n' ]; then
-    if [ "$gruboldremove" = 'Y' ] || [ "$gruboldremove" = 'y' ]; then
-      chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="Gentoo Linux" --recheck
-    else
-      chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="Gentoo Linux"
-    fi
+    chroot "$glchroot" grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id="Gentoo Linux" --recheck
   fi
 elif [ "$boot_mode" = 'legacy' ]; then
   chroot "$glchroot" grub-install "$hddevselectdev"
